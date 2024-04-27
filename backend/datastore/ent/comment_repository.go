@@ -101,6 +101,16 @@ func (cr *commentRepository) DeleteExec(ctx context.Context, commentFs ...*model
 	return affected, c.error(err)
 }
 
+func (cr *commentRepository) AllWithReplyAndLikeCount(ctx context.Context, mediaID uuid.UUID) ([]*model.CommentWithRelationsCount, error) {
+	// TODO: Implement this method
+	panic("not implemented")
+}
+
+func (cr *commentRepository) AllRepliesWithLikeCount(ctx context.Context, comment *model.Comment) ([]*model.Comment, error) {
+	// TODO: Implement this method
+	panic("not implemented")
+}
+
 func (cr *commentRepository) filters(commentFs []*model.CommentF) []predicate.Comment {
 	var commentF *model.CommentF
 	if len(commentFs) > 0 {

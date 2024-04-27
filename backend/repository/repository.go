@@ -25,7 +25,6 @@ type Repository[E, F, U any] interface {
 
 type (
 	SessionRepository Repository[*model.Session, *model.SessionF, *model.SessionU]
-	CommentRepository Repository[*model.Comment, *model.CommentF, *model.CommentU]
 	LikeRepository    Repository[*model.Like, *model.LikeF, *model.LikeU]
 	ReviewRepository  Repository[*model.Review, *model.ReviewF, *model.ReviewU]
 	MediaRepository   Repository[*model.Media, *model.MediaF, *model.MediaU]
@@ -58,4 +57,11 @@ type ListRepository interface {
 	AddMedia(ctx context.Context, list *model.List, mediaID uuid.UUID) error
 	RemoveMedia(ctx context.Context, list *model.List, mediaID uuid.UUID) error
 	AllMedia(ctx context.Context, list *model.List) ([]*model.Media, error)
+}
+
+type CommentRepository interface {
+	Repository[*model.Comment, *model.CommentF, *model.CommentU]
+
+	AllWithReplyAndLikeCount(ctx context.Context, mediaID uuid.UUID) ([]*model.CommentWithRelationsCount, error)
+	AllRepliesWithReplyAndLikeCount(ctx context.Context, comment *model.Comment) ([]*model.CommentWithRelationsCount, error)
 }
