@@ -77,13 +77,13 @@ func (c converter) sessions(sessions []*ent.Session) []*model.Session {
 func (c converter) comment(comment *ent.Comment) *model.Comment {
 	if comment != nil {
 		return &model.Comment{
-			ID:         comment.ID,
-			UserID:     comment.UserID,
-			ReplyingTo: comment.ReplyingTo,
-			MediaID:    comment.MediaID,
-			Content:    comment.Content,
-			CreatedAt:  comment.CreatedAt,
-			UpdatedAt:  comment.UpdatedAt,
+			ID:           comment.ID,
+			UserID:       comment.UserID,
+			MediaID:      comment.MediaID,
+			ReplyingToID: comment.ReplyingToID,
+			Content:      comment.Content,
+			CreatedAt:    comment.CreatedAt,
+			UpdatedAt:    comment.UpdatedAt,
 		}
 	}
 	return nil

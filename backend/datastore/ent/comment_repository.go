@@ -117,8 +117,8 @@ func (cr *commentRepository) filters(commentFs []*model.CommentF) []predicate.Co
 		if commentF.MediaID != nil {
 			filters = append(filters, Comment.MediaID(*commentF.MediaID))
 		}
-		if commentF.ReplyingTo != nil {
-			filters = append(filters, Comment.ReplyingTo(*commentF.ReplyingTo))
+		if commentF.ReplyingToID != nil {
+			filters = append(filters, Comment.ReplyingToID(*commentF.ReplyingToID))
 		}
 		if commentF.Content != nil {
 			filters = append(filters, Comment.Content(*commentF.Content))
@@ -137,8 +137,8 @@ func (cr *commentRepository) create(comment *model.Comment) *ent.CommentCreate {
 	return cr.client.Comment.Create().
 		SetID(uuid.New()).
 		SetUserID(*comment.UserID).
+		SetNillableReplyingToID(comment.ReplyingToID).
 		SetMediaID(comment.MediaID).
-		SetNillableReplyingTo(comment.ReplyingTo).
 		SetContent(comment.Content).
 		SetCreatedAt(time.Now())
 }
