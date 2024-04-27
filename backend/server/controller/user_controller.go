@@ -21,12 +21,12 @@ func NewUserController(userService service.UserService) *UserController {
 }
 
 func (uc *UserController) Routes(router fiber.Router, mw *middleware.Middleware) {
-	users := router.Group("/user")
+	users := router.Group("/users")
 	users.Put("/", mw.SignedIn, uc.UpdateUser)
 	users.Delete("/", mw.SignedIn, uc.DeleteUser)
 }
 
-// UpdateUser [PUT] /api/user
+// UpdateUser [PUT] /api/users
 func (uc *UserController) UpdateUser(c *fiber.Ctx) error {
 
 	type Payload struct {
@@ -71,7 +71,7 @@ func (uc *UserController) UpdateUser(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"user": user})
 }
 
-// DeleteUser [DELETE] /api/user
+// DeleteUser [DELETE] /api/users
 func (uc *UserController) DeleteUser(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
 
