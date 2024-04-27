@@ -11,17 +11,19 @@ import (
 )
 
 type ListService interface {
-	CreateList(ctx context.Context, owner uuid.UUID, title string) (*model.List, error)
-	DeleteList(ctx context.Context, owner uuid.UUID, id uuid.UUID) error
-	UpdateList(ctx context.Context, owner uuid.UUID, id uuid.UUID, listU *model.ListU) (*model.List, error)
-	AddMemberToList(ctx context.Context, owner uuid.UUID, listID uuid.UUID, userID uuid.UUID) error
-	RemoveMemberFromList(ctx context.Context, owner uuid.UUID, listID uuid.UUID, userID uuid.UUID) error
-	GetList(ctx context.Context, member uuid.UUID, id uuid.UUID) (*model.List, error)
-	GetDetailedList(ctx context.Context, member uuid.UUID, id uuid.UUID) (*DetailedList, error)
-	AddMovieToList(ctx context.Context, member uuid.UUID, listID uuid.UUID, ref int) error
-	RemoveMovieFromList(ctx context.Context, member uuid.UUID, listID uuid.UUID, ref int) error
-	AddShowToList(ctx context.Context, member uuid.UUID, listID uuid.UUID, ref int) error
-	RemoveShowFromList(ctx context.Context, member uuid.UUID, listID uuid.UUID, ref int) error
+	CreateList(ctx context.Context, ownerID uuid.UUID, title string) (*model.List, error)
+	DeleteList(ctx context.Context, ownerID uuid.UUID, id uuid.UUID) error
+	UpdateList(ctx context.Context, ownerID uuid.UUID, id uuid.UUID, listU *model.ListU) (*model.List, error)
+	AddMemberToList(ctx context.Context, ownerID uuid.UUID, listID uuid.UUID, userID uuid.UUID) error
+	RemoveMemberFromList(ctx context.Context, ownerID uuid.UUID, listID uuid.UUID, userID uuid.UUID) error
+	GetAllLists(ctx context.Context, memberID uuid.UUID) ([]*model.List, error)
+	GetPublicLists(ctx context.Context, userID uuid.UUID) ([]*model.List, error)
+	GetPrivateDetailedList(ctx context.Context, memberID uuid.UUID, id uuid.UUID) (*DetailedList, error)
+	GetPublicDetailedList(ctx context.Context, id uuid.UUID) (*DetailedList, error)
+	AddMovieToList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error
+	RemoveMovieFromList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error
+	AddShowToList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error
+	RemoveShowFromList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error
 }
 
 type listService struct {
@@ -42,8 +44,8 @@ func NewListService(
 	}
 }
 
-func (ls *listService) CreateList(ctx context.Context, ownerID uuid.UUID, title string) (*model.List, error) {
-	exists, err := ls.store.Users().Exists(ctx, &model.UserF{ID: &ownerID})
+func (ls *listService) CreateList(ctx context.Context, ownerIDID uuid.UUID, title string) (*model.List, error) {
+	exists, err := ls.store.Users().Exists(ctx, &model.UserF{ID: &ownerIDID})
 	if err != nil {
 		ls.logger.Error("error fetching user", err)
 		return nil, fault.Internal("error creating list")
@@ -60,7 +62,7 @@ func (ls *listService) CreateList(ctx context.Context, ownerID uuid.UUID, title 
 
 	list, err := tx.Lists().Insert(
 		ctx, &model.List{
-			OwnerID:   ownerID,
+			OwnerID:   ownerIDID,
 			Title:     title,
 			Public:    false,
 			CreatedAt: time.Now(),
@@ -71,7 +73,7 @@ func (ls *listService) CreateList(ctx context.Context, ownerID uuid.UUID, title 
 		return nil, fault.Internal("error creating list")
 	}
 
-	if err = tx.Lists().AddMember(ctx, list, ownerID); err != nil {
+	if err = tx.Lists().AddMember(ctx, list, ownerIDID); err != nil {
 		ls.logger.Error("error adding user to list", err)
 		return nil, fault.Internal("error creating list")
 	}
@@ -84,8 +86,8 @@ func (ls *listService) CreateList(ctx context.Context, ownerID uuid.UUID, title 
 	return list, nil
 }
 
-func (ls *listService) DeleteList(ctx context.Context, ownerID uuid.UUID, id uuid.UUID) error {
-	exists, err := ls.store.Lists().Exists(ctx, &model.ListF{ID: &id, OwnerID: &ownerID})
+func (ls *listService) DeleteList(ctx context.Context, ownerIDID uuid.UUID, id uuid.UUID) error {
+	exists, err := ls.store.Lists().Exists(ctx, &model.ListF{ID: &id, OwnerID: &ownerIDID})
 	if err != nil {
 		ls.logger.Error("error checking list existence", err)
 		return fault.Internal("error deleting list")
@@ -101,12 +103,12 @@ func (ls *listService) DeleteList(ctx context.Context, ownerID uuid.UUID, id uui
 	return nil
 }
 
-func (ls *listService) UpdateList(ctx context.Context, ownerID uuid.UUID, id uuid.UUID, listU *model.ListU) (*model.List, error) {
+func (ls *listService) UpdateList(ctx context.Context, ownerIDID uuid.UUID, id uuid.UUID, listU *model.ListU) (*model.List, error) {
 	if listU.Title == nil && listU.Public == nil {
 		return nil, fault.BadRequest("no fields to update")
 	}
 
-	exists, err := ls.store.Lists().Exists(ctx, &model.ListF{ID: &id, OwnerID: &ownerID})
+	exists, err := ls.store.Lists().Exists(ctx, &model.ListF{ID: &id, OwnerID: &ownerIDID})
 	if err != nil {
 		ls.logger.Error("error checking list existence", err)
 		return nil, fault.Internal("error updating list")
@@ -123,7 +125,7 @@ func (ls *listService) UpdateList(ctx context.Context, ownerID uuid.UUID, id uui
 	return list, nil
 }
 
-func (ls *listService) AddMemberToList(ctx context.Context, owner uuid.UUID, listID uuid.UUID, userID uuid.UUID) error {
+func (ls *listService) AddMemberToList(ctx context.Context, ownerID uuid.UUID, listID uuid.UUID, userID uuid.UUID) error {
 	exists, err := ls.store.Users().Exists(ctx, &model.UserF{ID: &userID})
 	if err != nil {
 		ls.logger.Error("error checking user existence", err)
@@ -132,7 +134,7 @@ func (ls *listService) AddMemberToList(ctx context.Context, owner uuid.UUID, lis
 		return fault.NotFound("user not found")
 	}
 
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, OwnerID: &owner})
+	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, OwnerID: &ownerID})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return fault.NotFound("list not found")
@@ -157,8 +159,8 @@ func (ls *listService) AddMemberToList(ctx context.Context, owner uuid.UUID, lis
 	return nil
 }
 
-func (ls *listService) RemoveMemberFromList(ctx context.Context, owner uuid.UUID, listID uuid.UUID, userID uuid.UUID) error {
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, OwnerID: &owner})
+func (ls *listService) RemoveMemberFromList(ctx context.Context, ownerID uuid.UUID, listID uuid.UUID, userID uuid.UUID) error {
+	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, OwnerID: &ownerID})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return fault.NotFound("list not found")
@@ -183,28 +185,53 @@ func (ls *listService) RemoveMemberFromList(ctx context.Context, owner uuid.UUID
 	return nil
 }
 
-func (ls *listService) GetList(ctx context.Context, member uuid.UUID, id uuid.UUID) (*model.List, error) {
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &id, HasMemberID: &member})
+func (ls *listService) GetAllLists(ctx context.Context, memberID uuid.UUID) ([]*model.List, error) {
+	exists, err := ls.store.Users().Exists(ctx, &model.UserF{ID: &memberID})
 	if err != nil {
-		if datastore.IsNotFound(err) {
-			return nil, fault.NotFound("list not found")
-		}
+		ls.logger.Error("error checking user existence", err)
+		return nil, fault.Internal("error fetching list")
+	} else if !exists {
+		return nil, fault.NotFound("user not found")
+	}
+
+	lists, err := ls.store.Lists().All(ctx, &model.ListF{HasMemberID: &memberID})
+	if err != nil {
 		ls.logger.Error("error fetching list", err)
 		return nil, fault.Internal("error fetching list")
 	}
 
-	return list, nil
+	return lists, nil
+}
+
+func (ls *listService) GetPublicLists(ctx context.Context, userID uuid.UUID) ([]*model.List, error) {
+	exists, err := ls.store.Users().Exists(ctx, &model.UserF{ID: &userID})
+	if err != nil {
+		ls.logger.Error("error checking user existence", err)
+		return nil, fault.Internal("error fetching list")
+	} else if !exists {
+		return nil, fault.NotFound("user not found")
+	}
+
+	public := true
+
+	lists, err := ls.store.Lists().All(ctx, &model.ListF{HasMemberID: &userID, Public: &public})
+	if err != nil {
+		ls.logger.Error("error fetching list", err)
+		return nil, fault.Internal("error fetching list")
+	}
+
+	return lists, nil
 }
 
 type DetailedList struct {
 	List    *model.List    `json:"list"`
-	Members []*model.User  `json:"members"`
+	Members []*model.User  `json:"memberIDs"`
 	Movies  []*model.Media `json:"movies"`
 	Shows   []*model.Media `json:"shows"`
 }
 
-func (ls *listService) GetDetailedList(ctx context.Context, member uuid.UUID, id uuid.UUID) (*DetailedList, error) {
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &id, HasMemberID: &member})
+func (ls *listService) GetPrivateDetailedList(ctx context.Context, memberID uuid.UUID, id uuid.UUID) (*DetailedList, error) {
+	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &id, HasMemberID: &memberID})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return nil, fault.NotFound("list not found")
@@ -228,13 +255,45 @@ func (ls *listService) GetDetailedList(ctx context.Context, member uuid.UUID, id
 	return &DetailedList{
 		List:    list,
 		Members: users,
-		Movies:  ls.filterMovies(media),
-		Shows:   ls.filterShows(media),
+		Movies:  ls.filterMedia(media, model.MediaTypeMovie),
+		Shows:   ls.filterMedia(media, model.MediaTypeShow),
 	}, nil
 }
 
-func (ls *listService) AddMovieToList(ctx context.Context, member uuid.UUID, listID uuid.UUID, ref int) error {
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMemberID: &member})
+func (ls *listService) GetPublicDetailedList(ctx context.Context, id uuid.UUID) (*DetailedList, error) {
+	public := true
+
+	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &id, Public: &public})
+	if err != nil {
+		if datastore.IsNotFound(err) {
+			return nil, fault.NotFound("list not found")
+		}
+		ls.logger.Error("error fetching list", err)
+		return nil, fault.Internal("error fetching list")
+	}
+
+	users, err := ls.store.Lists().AllMembers(ctx, list)
+	if err != nil {
+		ls.logger.Error("error fetching users", err)
+		return nil, fault.Internal("error fetching list")
+	}
+
+	media, err := ls.store.Lists().AllMedia(ctx, list)
+	if err != nil {
+		ls.logger.Error("error fetching media", err)
+		return nil, fault.Internal("error fetching list")
+	}
+
+	return &DetailedList{
+		List:    list,
+		Members: users,
+		Movies:  ls.filterMedia(media, model.MediaTypeMovie),
+		Shows:   ls.filterMedia(media, model.MediaTypeShow),
+	}, nil
+}
+
+func (ls *listService) AddMovieToList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error {
+	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMemberID: &memberID})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return fault.NotFound("list not found")
@@ -260,8 +319,8 @@ func (ls *listService) AddMovieToList(ctx context.Context, member uuid.UUID, lis
 	return nil
 }
 
-func (ls *listService) RemoveMovieFromList(ctx context.Context, member uuid.UUID, listID uuid.UUID, ref int) error {
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMemberID: &member})
+func (ls *listService) RemoveMovieFromList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error {
+	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMemberID: &memberID})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return fault.NotFound("list not found")
@@ -287,8 +346,8 @@ func (ls *listService) RemoveMovieFromList(ctx context.Context, member uuid.UUID
 	return nil
 }
 
-func (ls *listService) AddShowToList(ctx context.Context, member uuid.UUID, listID uuid.UUID, ref int) error {
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMemberID: &member})
+func (ls *listService) AddShowToList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error {
+	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMemberID: &memberID})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return fault.NotFound("list not found")
@@ -314,8 +373,8 @@ func (ls *listService) AddShowToList(ctx context.Context, member uuid.UUID, list
 	return nil
 }
 
-func (ls *listService) RemoveShowFromList(ctx context.Context, member uuid.UUID, listID uuid.UUID, ref int) error {
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMemberID: &member})
+func (ls *listService) RemoveShowFromList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error {
+	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMemberID: &memberID})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return fault.NotFound("list not found")
@@ -341,22 +400,12 @@ func (ls *listService) RemoveShowFromList(ctx context.Context, member uuid.UUID,
 	return nil
 }
 
-func (ls *listService) filterMovies(medias []*model.Media) []*model.Media {
+func (ls *listService) filterMedia(medias []*model.Media, mediaType model.MediaType) []*model.Media {
 	var movies []*model.Media
 	for _, media := range medias {
-		if media.MediaType == model.MediaTypeMovie {
+		if media.MediaType == mediaType {
 			movies = append(movies, media)
 		}
 	}
 	return movies
-}
-
-func (ls *listService) filterShows(medias []*model.Media) []*model.Media {
-	var shows []*model.Media
-	for _, media := range medias {
-		if media.MediaType == model.MediaTypeShow {
-			shows = append(shows, media)
-		}
-	}
-	return shows
 }
