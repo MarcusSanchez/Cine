@@ -21,17 +21,18 @@ func NewListController(listService service.ListService) *ListController {
 }
 
 func (lc *ListController) Routes(router fiber.Router, mw *middleware.Middleware) {
-	router.Post("/list", mw.SignedIn, lc.CreateList)
-	router.Delete("/list/:list-id", mw.SignedIn, mw.ParseUUID("list-id"), lc.DeleteList)
-	router.Put("/list/:list-id", mw.SignedIn, mw.ParseUUID("list-id"), lc.UpdateList)
-	router.Post("/list/:list-id/user/:user-id", mw.SignedIn, mw.ParseUUID("list-id"), mw.ParseUUID("user-id"), lc.AddUserToList)
-	router.Delete("/list/:list-id/user/:user-id", mw.SignedIn, mw.ParseUUID("list-id"), mw.ParseUUID("user-id"), lc.RemoveUserFromList)
-	router.Get("/list/:list-id", mw.SignedIn, mw.ParseUUID("list-id"), lc.GetList)
-	router.Get("/list/:list-id/detailed", mw.SignedIn, mw.ParseUUID("list-id"), lc.GetDetailedList)
-	router.Post("/list/:list-id/movie/:ref", mw.SignedIn, mw.ParseUUID("list-id"), lc.AddMovieToList)
-	router.Delete("/list/:list-id/movie/:ref", mw.SignedIn, mw.ParseUUID("list-id"), mw.ParseInt("ref"), lc.RemoveMovieFromList)
-	router.Post("/list/:list-id/show/:ref", mw.SignedIn, mw.ParseUUID("list-id"), mw.ParseInt("ref"), lc.AddShowToList)
-	router.Delete("/list/:list-id/show/:ref", mw.SignedIn, mw.ParseUUID("list-id"), mw.ParseInt("ref"), lc.RemoveShowFromList)
+	list := router.Group("/list")
+	list.Post("/", mw.SignedIn, mw.CSRF, lc.CreateList)
+	list.Delete("/:list-id", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id"), lc.DeleteList)
+	list.Put("/:list-id", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id"), lc.UpdateList)
+	list.Post("/:list-id/user/:user-id", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id", "user-id"), lc.AddUserToList)
+	list.Delete("/:list-id/user/:user-id", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id", "user-id"), lc.RemoveUserFromList)
+	list.Get("/:list-id", mw.SignedIn, mw.ParseUUID("list-id"), lc.GetList)
+	list.Get("/:list-id/detailed", mw.SignedIn, mw.ParseUUID("list-id"), lc.GetDetailedList)
+	list.Post("/:list-id/movie/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id"), lc.AddMovieToList)
+	list.Delete("/:list-id/movie/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id"), mw.ParseInt("ref"), lc.RemoveMovieFromList)
+	list.Post("/:list-id/show/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id"), mw.ParseInt("ref"), lc.AddShowToList)
+	list.Delete("/:list-id/show/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id"), mw.ParseInt("ref"), lc.RemoveShowFromList)
 }
 
 // CreateList [POST] /api/list
@@ -127,7 +128,7 @@ func (lc *ListController) RemoveUserFromList(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.SendStatus(http.StatusOK)
+	return c.SendStatus(http.StatusNoContent)
 }
 
 // GetList [GET] /api/list/:list-id
