@@ -44,8 +44,8 @@ func NewListService(
 	}
 }
 
-func (ls *listService) CreateList(ctx context.Context, ownerIDID uuid.UUID, title string) (*model.List, error) {
-	exists, err := ls.store.Users().Exists(ctx, &model.UserF{ID: &ownerIDID})
+func (ls *listService) CreateList(ctx context.Context, ownerID uuid.UUID, title string) (*model.List, error) {
+	exists, err := ls.store.Users().Exists(ctx, &model.UserF{ID: &ownerID})
 	if err != nil {
 		ls.logger.Error("error fetching user", err)
 		return nil, fault.Internal("error creating list")
@@ -62,7 +62,7 @@ func (ls *listService) CreateList(ctx context.Context, ownerIDID uuid.UUID, titl
 
 	list, err := tx.Lists().Insert(
 		ctx, &model.List{
-			OwnerID:   ownerIDID,
+			OwnerID:   ownerID,
 			Title:     title,
 			Public:    false,
 			CreatedAt: time.Now(),
@@ -73,7 +73,7 @@ func (ls *listService) CreateList(ctx context.Context, ownerIDID uuid.UUID, titl
 		return nil, fault.Internal("error creating list")
 	}
 
-	if err = tx.Lists().AddMember(ctx, list, ownerIDID); err != nil {
+	if err = tx.Lists().AddMember(ctx, list, ownerID); err != nil {
 		ls.logger.Error("error adding user to list", err)
 		return nil, fault.Internal("error creating list")
 	}
@@ -86,8 +86,8 @@ func (ls *listService) CreateList(ctx context.Context, ownerIDID uuid.UUID, titl
 	return list, nil
 }
 
-func (ls *listService) DeleteList(ctx context.Context, ownerIDID uuid.UUID, id uuid.UUID) error {
-	exists, err := ls.store.Lists().Exists(ctx, &model.ListF{ID: &id, OwnerID: &ownerIDID})
+func (ls *listService) DeleteList(ctx context.Context, ownerID uuid.UUID, id uuid.UUID) error {
+	exists, err := ls.store.Lists().Exists(ctx, &model.ListF{ID: &id, OwnerID: &ownerID})
 	if err != nil {
 		ls.logger.Error("error checking list existence", err)
 		return fault.Internal("error deleting list")
@@ -103,12 +103,12 @@ func (ls *listService) DeleteList(ctx context.Context, ownerIDID uuid.UUID, id u
 	return nil
 }
 
-func (ls *listService) UpdateList(ctx context.Context, ownerIDID uuid.UUID, id uuid.UUID, listU *model.ListU) (*model.List, error) {
+func (ls *listService) UpdateList(ctx context.Context, ownerID uuid.UUID, id uuid.UUID, listU *model.ListU) (*model.List, error) {
 	if listU.Title == nil && listU.Public == nil {
 		return nil, fault.BadRequest("no fields to update")
 	}
 
-	exists, err := ls.store.Lists().Exists(ctx, &model.ListF{ID: &id, OwnerID: &ownerIDID})
+	exists, err := ls.store.Lists().Exists(ctx, &model.ListF{ID: &id, OwnerID: &ownerID})
 	if err != nil {
 		ls.logger.Error("error checking list existence", err)
 		return nil, fault.Internal("error updating list")
