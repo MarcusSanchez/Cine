@@ -42,9 +42,9 @@ func (User) Edges() []ent.Edge {
 		edge.To("friends", User.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 		// O2M User <-- Review
 		edge.To("reviews", Review.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
-		// M2M User <--> List
+		// M2M User (members) <--> List
 		edge.To("lists", List.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
-		// O2M User <-- List
+		// O2M User (owner) <-- List
 		edge.To("owned_lists", List.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }
