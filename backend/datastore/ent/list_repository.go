@@ -104,32 +104,32 @@ func (lr *listRepository) DeleteExec(ctx context.Context, listFs ...*model.ListF
 	return affected, c.error(err)
 }
 
-func (lr *listRepository) AllUsers(ctx context.Context, list *model.List) ([]*model.User, error) {
-	q := c.entList(list).QueryUsers()
+func (lr *listRepository) AllMembers(ctx context.Context, list *model.List) ([]*model.User, error) {
+	q := c.entList(list).QueryMembers()
 
 	users, err := q.All(ctx)
 	return c.users(users), c.error(err)
 }
 
-func (lr *listRepository) ExistsUser(ctx context.Context, list *model.List, userID uuid.UUID) (bool, error) {
+func (lr *listRepository) ExistsMember(ctx context.Context, list *model.List, userID uuid.UUID) (bool, error) {
 	q := lr.client.List.Query()
-	q = q.Where(List.ID(list.ID), List.HasUsersWith(User.ID(userID)))
+	q = q.Where(List.ID(list.ID), List.HasMembersWith(User.ID(userID)))
 
 	exists, err := q.Exist(ctx)
 	return exists, c.error(err)
 }
 
-func (lr *listRepository) AddUser(ctx context.Context, list *model.List, userID uuid.UUID) error {
+func (lr *listRepository) AddMember(ctx context.Context, list *model.List, userID uuid.UUID) error {
 	q := lr.client.List.UpdateOne(c.entList(list))
-	q = q.AddUserIDs(userID)
+	q = q.AddMemberIDs(userID)
 
 	_, err := q.Save(ctx)
 	return c.error(err)
 }
 
-func (lr *listRepository) RemoveUser(ctx context.Context, list *model.List, userID uuid.UUID) error {
+func (lr *listRepository) RemoveMember(ctx context.Context, list *model.List, userID uuid.UUID) error {
 	q := lr.client.List.UpdateOne(c.entList(list))
-	q = q.RemoveUserIDs(userID)
+	q = q.RemoveMemberIDs(userID)
 
 	_, err := q.Save(ctx)
 	return c.error(err)
@@ -184,7 +184,7 @@ func (lr *listRepository) filters(listFs []*model.ListF) []predicate.List {
 			filters = append(filters, List.UpdatedAt(*listF.UpdatedAt))
 		}
 		if listF.HasMemberID != nil {
-			filters = append(filters, List.HasUsersWith(User.ID(*listF.HasMemberID)))
+			filters = append(filters, List.HasMembersWith(User.ID(*listF.HasMemberID)))
 		}
 	}
 	return filters

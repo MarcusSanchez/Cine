@@ -6,7 +6,6 @@ import (
 	"cine/pkg/fault"
 	"cine/pkg/logger"
 	"cine/pkg/tmdb"
-	"cine/repository"
 	"context"
 	"github.com/google/uuid"
 )
@@ -20,23 +19,23 @@ type MediaService interface {
 type mediaService struct {
 	logger logger.Logger
 	tmdb   tmdb.API
-	media  repository.MediaRepository
+	store  datastore.Store
 }
 
 func NewMediaService(
 	logger logger.Logger,
 	tmdbAPI tmdb.API,
-	mediaRepository repository.MediaRepository,
+	store datastore.Store,
 ) MediaService {
 	return &mediaService{
 		logger: logger,
 		tmdb:   tmdbAPI,
-		media:  mediaRepository,
+		store:  store,
 	}
 }
 
 func (ms *mediaService) CreateMedia(ctx context.Context, ref int, mediaType model.MediaType) (*model.Media, error) {
-	exists, err := ms.media.Exists(ctx, &model.MediaF{Ref: &ref, MediaType: &mediaType})
+	exists, err := ms.store.Medias().Exists(ctx, &model.MediaF{Ref: &ref, MediaType: &mediaType})
 	if err != nil {
 		ms.logger.Error("exists check on media failed", err)
 		return nil, fault.Internal("error creating media")
@@ -49,7 +48,7 @@ func (ms *mediaService) CreateMedia(ctx context.Context, ref int, mediaType mode
 		return nil, err
 	}
 
-	media, err = ms.media.Insert(ctx, media)
+	media, err = ms.store.Medias().Insert(ctx, media)
 	if err != nil {
 		ms.logger.Error("media insert failed", err)
 		return nil, fault.Internal("error creating media")
@@ -59,7 +58,7 @@ func (ms *mediaService) CreateMedia(ctx context.Context, ref int, mediaType mode
 }
 
 func (ms *mediaService) GetMedia(ctx context.Context, ref int, mediaType model.MediaType) (*model.Media, error) {
-	media, err := ms.media.One(ctx, &model.MediaF{Ref: &ref, MediaType: &mediaType})
+	media, err := ms.store.Medias().One(ctx, &model.MediaF{Ref: &ref, MediaType: &mediaType})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			// if we don't find the media in our database, it doesn't mean that it doesn't exist in TMDB,
@@ -81,7 +80,7 @@ func (ms *mediaService) GetMedia(ctx context.Context, ref int, mediaType model.M
 }
 
 func (ms *mediaService) GetMediaByID(ctx context.Context, id uuid.UUID) (*model.Media, error) {
-	media, err := ms.media.One(ctx, &model.MediaF{ID: &id})
+	media, err := ms.store.Medias().One(ctx, &model.MediaF{ID: &id})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return nil, fault.NotFound("media not found")

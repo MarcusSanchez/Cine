@@ -5,18 +5,16 @@ import (
 	"cine/datastore/ent"
 	"cine/pkg/logger"
 	"cine/pkg/tmdb"
+	"cine/server"
 	"cine/server/controller"
 	"cine/server/middleware"
 	"cine/service"
-	"fmt"
 	_ "github.com/lib/pq"
 	"go.uber.org/fx"
-	"log"
 )
 
 func main() {
 	fx.New(
-		fx.NopLogger,
 		fx.Provide(
 			logger.NewLogger,
 			config.NewConfig,
@@ -26,30 +24,18 @@ func main() {
 
 			service.NewAuthService,
 			service.NewUserService,
+			service.NewMediaService,
+			service.NewListService,
 
 			middleware.NewMiddleware,
 
 			controller.NewUserController,
 			controller.NewAuthController,
+			controller.NewListController,
 			controller.NewControllers,
 		),
 		fx.Invoke(
-			//server.InvokeServer,
-			invokeAPI,
+			server.InvokeServer,
 		),
 	).Run()
-}
-
-func invokeAPI(api tmdb.API) {
-
-	show, err := api.SearchShowByRef(550)
-	if err != nil {
-		if tmdb.IsNotFound(err) {
-			log.Println("Show not found")
-			return
-		}
-		log.Fatal(err)
-	}
-
-	fmt.Println(show.Name)
 }

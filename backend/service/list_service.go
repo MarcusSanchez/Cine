@@ -14,8 +14,8 @@ type ListService interface {
 	CreateList(ctx context.Context, owner uuid.UUID, title string) (*model.List, error)
 	DeleteList(ctx context.Context, owner uuid.UUID, id uuid.UUID) error
 	UpdateList(ctx context.Context, owner uuid.UUID, id uuid.UUID, listU *model.ListU) (*model.List, error)
-	AddUserToList(ctx context.Context, owner uuid.UUID, listID uuid.UUID, userID uuid.UUID) error
-	RemoveUserFromList(ctx context.Context, owner uuid.UUID, listID uuid.UUID, userID uuid.UUID) error
+	AddMemberToList(ctx context.Context, owner uuid.UUID, listID uuid.UUID, userID uuid.UUID) error
+	RemoveMemberFromList(ctx context.Context, owner uuid.UUID, listID uuid.UUID, userID uuid.UUID) error
 	GetList(ctx context.Context, member uuid.UUID, id uuid.UUID) (*model.List, error)
 	GetDetailedList(ctx context.Context, member uuid.UUID, id uuid.UUID) (*DetailedList, error)
 	AddMovieToList(ctx context.Context, member uuid.UUID, listID uuid.UUID, ref int) error
@@ -71,7 +71,7 @@ func (ls *listService) CreateList(ctx context.Context, ownerID uuid.UUID, title 
 		return nil, fault.Internal("error creating list")
 	}
 
-	if err = tx.Lists().AddUser(ctx, list, ownerID); err != nil {
+	if err = tx.Lists().AddMember(ctx, list, ownerID); err != nil {
 		ls.logger.Error("error adding user to list", err)
 		return nil, fault.Internal("error creating list")
 	}
@@ -123,7 +123,7 @@ func (ls *listService) UpdateList(ctx context.Context, ownerID uuid.UUID, id uui
 	return list, nil
 }
 
-func (ls *listService) AddUserToList(ctx context.Context, owner uuid.UUID, listID uuid.UUID, userID uuid.UUID) error {
+func (ls *listService) AddMemberToList(ctx context.Context, owner uuid.UUID, listID uuid.UUID, userID uuid.UUID) error {
 	exists, err := ls.store.Users().Exists(ctx, &model.UserF{ID: &userID})
 	if err != nil {
 		ls.logger.Error("error checking user existence", err)
@@ -141,7 +141,7 @@ func (ls *listService) AddUserToList(ctx context.Context, owner uuid.UUID, listI
 		return fault.Internal("error adding user to list")
 	}
 
-	exists, err = ls.store.Lists().ExistsUser(ctx, list, userID)
+	exists, err = ls.store.Lists().Exists(ctx, &model.ListF{ID: &listID, HasMemberID: &userID})
 	if err != nil {
 		ls.logger.Error("error checking user existence", err)
 		return fault.Internal("error adding user to list")
@@ -149,7 +149,7 @@ func (ls *listService) AddUserToList(ctx context.Context, owner uuid.UUID, listI
 		return fault.Conflict("user already exists in list")
 	}
 
-	if err = ls.store.Lists().AddUser(ctx, list, userID); err != nil {
+	if err = ls.store.Lists().AddMember(ctx, list, userID); err != nil {
 		ls.logger.Error("error adding user to list", err)
 		return fault.Internal("error adding user to list")
 	}
@@ -157,7 +157,7 @@ func (ls *listService) AddUserToList(ctx context.Context, owner uuid.UUID, listI
 	return nil
 }
 
-func (ls *listService) RemoveUserFromList(ctx context.Context, owner uuid.UUID, listID uuid.UUID, userID uuid.UUID) error {
+func (ls *listService) RemoveMemberFromList(ctx context.Context, owner uuid.UUID, listID uuid.UUID, userID uuid.UUID) error {
 	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, OwnerID: &owner})
 	if err != nil {
 		if datastore.IsNotFound(err) {
@@ -167,7 +167,7 @@ func (ls *listService) RemoveUserFromList(ctx context.Context, owner uuid.UUID, 
 		return fault.Internal("error removing user from list")
 	}
 
-	exists, err := ls.store.Lists().ExistsUser(ctx, list, userID)
+	exists, err := ls.store.Lists().Exists(ctx, &model.ListF{ID: &listID, HasMemberID: &userID})
 	if err != nil {
 		ls.logger.Error("error checking user existence", err)
 		return fault.Internal("error removing user from list")
@@ -175,7 +175,7 @@ func (ls *listService) RemoveUserFromList(ctx context.Context, owner uuid.UUID, 
 		return fault.NotFound("user not found")
 	}
 
-	if err = ls.store.Lists().RemoveUser(ctx, list, userID); err != nil {
+	if err = ls.store.Lists().RemoveMember(ctx, list, userID); err != nil {
 		ls.logger.Error("error removing user from list", err)
 		return fault.Internal("error removing user from list")
 	}
@@ -213,7 +213,7 @@ func (ls *listService) GetDetailedList(ctx context.Context, member uuid.UUID, id
 		return nil, fault.Internal("error fetching list")
 	}
 
-	users, err := ls.store.Lists().AllUsers(ctx, list)
+	users, err := ls.store.Lists().AllMembers(ctx, list)
 	if err != nil {
 		ls.logger.Error("error fetching users", err)
 		return nil, fault.Internal("error fetching list")

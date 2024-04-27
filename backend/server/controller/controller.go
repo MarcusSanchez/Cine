@@ -14,10 +14,12 @@ type Controllers []Controller
 func NewControllers(
 	userController *UserController,
 	authController *AuthController,
+	listController *ListController,
 ) Controllers {
 	return Controllers{
 		userController,
 		authController,
+		listController,
 	}
 }
 

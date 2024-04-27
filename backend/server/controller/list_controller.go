@@ -16,8 +16,8 @@ type ListController struct {
 	list service.ListService
 }
 
-func NewListController() *ListController {
-	return &ListController{}
+func NewListController(listService service.ListService) *ListController {
+	return &ListController{list: listService}
 }
 
 func (lc *ListController) Routes(router fiber.Router, mw *middleware.Middleware) {
@@ -108,7 +108,7 @@ func (lc *ListController) AddUserToList(c *fiber.Ctx) error {
 	listID := c.Locals("list-id").(uuid.UUID)
 	userID := c.Locals("user-id").(uuid.UUID)
 
-	err := lc.list.AddUserToList(c.Context(), session.UserID, listID, userID)
+	err := lc.list.AddMemberToList(c.Context(), session.UserID, listID, userID)
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (lc *ListController) RemoveUserFromList(c *fiber.Ctx) error {
 	listID := c.Locals("list-id").(uuid.UUID)
 	userID := c.Locals("user-id").(uuid.UUID)
 
-	err := lc.list.RemoveUserFromList(c.Context(), session.UserID, listID, userID)
+	err := lc.list.RemoveMemberFromList(c.Context(), session.UserID, listID, userID)
 	if err != nil {
 		return err
 	}
