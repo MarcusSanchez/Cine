@@ -120,7 +120,7 @@ func (cc *CommentController) DeleteComment(c *fiber.Ctx) error {
 		return err
 	}
 
-	return nil
+	return c.SendStatus(http.StatusNoContent)
 }
 
 // GetComments [GET] /api/comments/:media-type/:ref
@@ -153,8 +153,8 @@ func (cc *CommentController) LikeComment(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
 	commentID := c.Locals("comment-id").(uuid.UUID)
 
-	like, err := cc.comment.LikeComment(c.Context(),
-		&model.Like{
+	like, err := cc.comment.LikeComment(
+		c.Context(), &model.Like{
 			UserID:    session.UserID,
 			CommentID: commentID,
 		},
