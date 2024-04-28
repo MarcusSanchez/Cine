@@ -50,8 +50,8 @@ func (cs *commentService) CreateComment(ctx context.Context, input CreateComment
 	}
 
 	media, err := cs.media.GetMedia(ctx, input.Ref, input.MediaType)
-	if err != nil {
-		if datastore.IsNotFound(err) {
+	if e, ok := fault.As(err); ok {
+		if e.Code == fault.CodeNotFound {
 			return nil, fault.NotFound("media not found")
 		}
 		cs.logger.Error("failed getting media", err)
@@ -125,8 +125,8 @@ func (cs *commentService) DeleteComment(ctx context.Context, userID, commentID u
 
 func (cs *commentService) GetComments(ctx context.Context, ref int, mediaType model.MediaType) ([]*model.CommentWithRelationsCount, error) {
 	media, err := cs.media.GetMedia(ctx, ref, mediaType)
-	if err != nil {
-		if datastore.IsNotFound(err) {
+	if e, ok := fault.As(err); ok {
+		if e.Code == fault.CodeNotFound {
 			return nil, fault.NotFound("media not found")
 		}
 		cs.logger.Error("failed getting media", err)
