@@ -14,6 +14,8 @@ type MediaService interface {
 	CreateMedia(ctx context.Context, ref int, mediaType model.MediaType) (*model.Media, error)
 	GetMedia(ctx context.Context, ref int, mediaType model.MediaType) (*model.Media, error)
 	GetMediaByID(ctx context.Context, id uuid.UUID) (*model.Media, error)
+	GetDetailedMovie(ctx context.Context, ref int) (*tmdb.DetailedMovie, error)
+	GetDetailedShow(ctx context.Context, ref int) (*tmdb.DetailedShow, error)
 }
 
 type mediaService struct {
@@ -90,6 +92,32 @@ func (ms *mediaService) GetMediaByID(ctx context.Context, id uuid.UUID) (*model.
 	}
 
 	return media, nil
+}
+
+func (ms *mediaService) GetDetailedMovie(ctx context.Context, ref int) (*tmdb.DetailedMovie, error) {
+	movie, err := ms.tmdb.SearchMovieByRef(ref)
+	if err != nil {
+		if tmdb.IsNotFound(err) {
+			return nil, fault.NotFound("movie not found")
+		}
+		ms.logger.Error("failed to search movie by ref", err)
+		return nil, fault.Internal("error getting movie")
+	}
+
+	return movie, err
+}
+
+func (ms *mediaService) GetDetailedShow(ctx context.Context, ref int) (*tmdb.DetailedShow, error) {
+	show, err := ms.tmdb.SearchShowByRef(ref)
+	if err != nil {
+		if tmdb.IsNotFound(err) {
+			return nil, fault.NotFound("show not found")
+		}
+		ms.logger.Error("failed to search show by ref", err)
+		return nil, fault.Internal("error getting show")
+	}
+
+	return show, err
 }
 
 func (ms *mediaService) mediaFromRef(ref int, mediaType model.MediaType) (*model.Media, error) {
