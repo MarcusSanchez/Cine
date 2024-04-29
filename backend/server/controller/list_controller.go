@@ -67,7 +67,7 @@ func (lc *ListController) CreateList(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"list": list})
 }
 
-// DeleteList [DELETE] /api/lists/:lisIDt
+// DeleteList [DELETE] /api/lists/:listID
 func (lc *ListController) DeleteList(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
 	listID := c.Locals("listID").(uuid.UUID)
@@ -80,7 +80,7 @@ func (lc *ListController) DeleteList(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusNoContent)
 }
 
-// UpdateList [PUT] /api/lists/:lisIDt
+// UpdateList [PUT] /api/lists/:listID
 func (lc *ListController) UpdateList(c *fiber.Ctx) error {
 
 	type Payload struct {
