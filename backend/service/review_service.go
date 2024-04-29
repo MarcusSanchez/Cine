@@ -7,6 +7,7 @@ import (
 	"cine/pkg/logger"
 	"context"
 	"github.com/google/uuid"
+	"math"
 )
 
 type ReviewService interface {
@@ -58,6 +59,9 @@ func (rs *reviewService) CreateReview(ctx context.Context, input *CreateReviewIn
 	} else if exists {
 		return nil, fault.Conflict("a review already exists for this " + string(input.MediaType))
 	}
+
+	// Round the rating to the first decimal place i.e. 4.54 -> 4.5
+	input.Review.Rating = math.Round(input.Review.Rating*10) / 10
 
 	review, err := rs.store.Reviews().Insert(ctx, input.Review)
 	if err != nil {
