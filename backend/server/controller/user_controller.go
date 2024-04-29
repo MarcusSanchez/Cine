@@ -22,8 +22,8 @@ func NewUserController(userService service.UserService) *UserController {
 
 func (uc *UserController) Routes(router fiber.Router, mw *middleware.Middleware) {
 	users := router.Group("/users")
-	users.Put("/", mw.SignedIn, uc.UpdateUser)
-	users.Delete("/", mw.SignedIn, uc.DeleteUser)
+	users.Put("/", mw.SignedIn, mw.CSRF, uc.UpdateUser)
+	users.Delete("/", mw.SignedIn, mw.CSRF, uc.DeleteUser)
 }
 
 // UpdateUser [PUT] /api/users
