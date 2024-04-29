@@ -97,7 +97,12 @@ func (rc *ReviewController) UpdateReview(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
 	reviewID := c.Locals("reviewID").(uuid.UUID)
 
-	review, err := rc.review.UpdateReview(c.Context(), session.UserID, reviewID, &model.ReviewU{})
+	review, err := rc.review.UpdateReview(c.Context(),
+		session.UserID, reviewID, &model.ReviewU{
+			Content: p.Content,
+			Rating:  p.Rating,
+		},
+	)
 	if err != nil {
 		return err
 	}
