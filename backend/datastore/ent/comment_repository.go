@@ -102,13 +102,48 @@ func (cr *commentRepository) DeleteExec(ctx context.Context, commentFs ...*model
 }
 
 func (cr *commentRepository) AllWithReplyAndLikeCount(ctx context.Context, mediaID uuid.UUID) ([]*model.CommentWithRelationsCount, error) {
-	// TODO: Implement this method
-	panic("not implemented")
+	// TODO: Optimize this
+	q := cr.client.Comment.Query()
+	q = q.Where(Comment.MediaID(mediaID)).WithLikes().WithReplies()
+
+	comments, err := q.All(ctx)
+	if err != nil {
+		return nil, c.error(err)
+	}
+
+	var commentsWithRelationsCount []*model.CommentWithRelationsCount
+	for _, comment := range comments {
+		commentsWithRelationsCount = append(
+			commentsWithRelationsCount, &model.CommentWithRelationsCount{
+				Comment:      c.comment(comment),
+				RepliesCount: len(comment.Edges.Replies),
+				LikesCount:   len(comment.Edges.Likes),
+			},
+		)
+	}
+	return commentsWithRelationsCount, nil
 }
 
-func (cr *commentRepository) AllRepliesWithLikeCount(ctx context.Context, comment *model.Comment) ([]*model.Comment, error) {
-	// TODO: Implement this method
-	panic("not implemented")
+func (cr *commentRepository) AllRepliesWithReplyAndLikeCount(ctx context.Context, comment *model.Comment) ([]*model.CommentWithRelationsCount, error) {
+	// TODO: Optimize this
+	q := c.entComment(comment).QueryReplies().WithLikes().WithReplies()
+
+	replies, err := q.All(ctx)
+	if err != nil {
+		return nil, c.error(err)
+	}
+
+	var repliesWithRelationsCount []*model.CommentWithRelationsCount
+	for _, reply := range replies {
+		repliesWithRelationsCount = append(
+			repliesWithRelationsCount, &model.CommentWithRelationsCount{
+				Comment:      c.comment(reply),
+				RepliesCount: len(reply.Edges.Replies),
+				LikesCount:   len(reply.Edges.Likes),
+			},
+		)
+	}
+	return repliesWithRelationsCount, nil
 }
 
 func (cr *commentRepository) filters(commentFs []*model.CommentF) []predicate.Comment {

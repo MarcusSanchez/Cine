@@ -97,6 +97,21 @@ func (c converter) comments(comments []*ent.Comment) []*model.Comment {
 	return result
 }
 
+func (c converter) entComment(comment *model.Comment) *ent.Comment {
+	if comment != nil {
+		return &ent.Comment{
+			ID:           comment.ID,
+			UserID:       comment.UserID,
+			MediaID:      comment.MediaID,
+			ReplyingToID: comment.ReplyingToID,
+			Content:      comment.Content,
+			CreatedAt:    comment.CreatedAt,
+			UpdatedAt:    comment.UpdatedAt,
+		}
+	}
+	return nil
+}
+
 func (c converter) like(like *ent.Like) *model.Like {
 	if like != nil {
 		return &model.Like{
