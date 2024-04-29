@@ -160,6 +160,7 @@ func (c converter) list(list *ent.List) *model.List {
 	if list != nil {
 		return &model.List{
 			ID:        list.ID,
+			OwnerID:   list.OwnerID,
 			Title:     list.Title,
 			Public:    list.Public,
 			CreatedAt: list.CreatedAt,

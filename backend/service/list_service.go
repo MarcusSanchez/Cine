@@ -7,7 +7,6 @@ import (
 	"cine/pkg/logger"
 	"context"
 	"github.com/google/uuid"
-	"time"
 )
 
 type ListService interface {
@@ -62,10 +61,9 @@ func (ls *listService) CreateList(ctx context.Context, ownerID uuid.UUID, title 
 
 	list, err := tx.Lists().Insert(
 		ctx, &model.List{
-			OwnerID:   ownerID,
-			Title:     title,
-			Public:    false,
-			CreatedAt: time.Now(),
+			OwnerID: ownerID,
+			Title:   title,
+			Public:  false,
 		},
 	)
 	if err != nil {
