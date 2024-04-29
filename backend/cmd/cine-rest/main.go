@@ -26,12 +26,17 @@ func main() {
 			service.NewUserService,
 			service.NewMediaService,
 			service.NewListService,
+			service.NewCommentService,
+			service.NewReviewService,
 
 			middleware.NewMiddleware,
 
 			controller.NewUserController,
 			controller.NewAuthController,
 			controller.NewListController,
+			controller.NewCommentController,
+			controller.NewReviewController,
+			controller.NewMediaController,
 			controller.NewControllers,
 		),
 		fx.Invoke(
