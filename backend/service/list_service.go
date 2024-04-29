@@ -141,14 +141,6 @@ func (ls *listService) AddMemberToList(ctx context.Context, ownerID uuid.UUID, l
 		return fault.Internal("error adding user to list")
 	}
 
-	exists, err = ls.store.Lists().Exists(ctx, &model.ListF{ID: &listID, HasMemberID: &userID})
-	if err != nil {
-		ls.logger.Error("error checking user existence", err)
-		return fault.Internal("error adding user to list")
-	} else if exists {
-		return fault.Conflict("user already exists in list")
-	}
-
 	if err = ls.store.Lists().AddMember(ctx, list, userID); err != nil {
 		ls.logger.Error("error adding user to list", err)
 		return fault.Internal("error adding user to list")
@@ -172,7 +164,7 @@ func (ls *listService) RemoveMemberFromList(ctx context.Context, ownerID uuid.UU
 		ls.logger.Error("error checking user existence", err)
 		return fault.Internal("error removing user from list")
 	} else if !exists {
-		return fault.NotFound("user not found")
+		return fault.NotFound("user not found in list")
 	}
 
 	if err = ls.store.Lists().RemoveMember(ctx, list, userID); err != nil {
