@@ -159,7 +159,7 @@ func (ls *listService) RemoveMemberFromList(ctx context.Context, ownerID uuid.UU
 		return fault.Internal("error removing user from list")
 	}
 
-	exists, err := ls.store.Lists().Exists(ctx, &model.ListF{ID: &listID, HasMemberID: &userID})
+	exists, err := ls.store.Lists().Exists(ctx, &model.ListF{ID: &listID, HasMember: &userID})
 	if err != nil {
 		ls.logger.Error("error checking user existence", err)
 		return fault.Internal("error removing user from list")
@@ -184,7 +184,7 @@ func (ls *listService) GetAllLists(ctx context.Context, memberID uuid.UUID) ([]*
 		return nil, fault.NotFound("user not found")
 	}
 
-	lists, err := ls.store.Lists().All(ctx, &model.ListF{HasMemberID: &memberID})
+	lists, err := ls.store.Lists().All(ctx, &model.ListF{HasMember: &memberID})
 	if err != nil {
 		ls.logger.Error("error fetching list", err)
 		return nil, fault.Internal("error fetching list")
@@ -204,7 +204,7 @@ func (ls *listService) GetPublicLists(ctx context.Context, userID uuid.UUID) ([]
 
 	public := true
 
-	lists, err := ls.store.Lists().All(ctx, &model.ListF{HasMemberID: &userID, Public: &public})
+	lists, err := ls.store.Lists().All(ctx, &model.ListF{HasMember: &userID, Public: &public})
 	if err != nil {
 		ls.logger.Error("error fetching list", err)
 		return nil, fault.Internal("error fetching list")
@@ -221,7 +221,7 @@ type DetailedList struct {
 }
 
 func (ls *listService) GetPrivateDetailedList(ctx context.Context, memberID uuid.UUID, id uuid.UUID) (*DetailedList, error) {
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &id, HasMemberID: &memberID})
+	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &id, HasMember: &memberID})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return nil, fault.NotFound("list not found")
@@ -288,7 +288,7 @@ func (ls *listService) GetPublicDetailedList(ctx context.Context, id uuid.UUID) 
 }
 
 func (ls *listService) AddMovieToList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error {
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMemberID: &memberID})
+	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMember: &memberID})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return fault.NotFound("list not found")
@@ -306,6 +306,14 @@ func (ls *listService) AddMovieToList(ctx context.Context, memberID uuid.UUID, l
 		return fault.Internal("error adding movie to list")
 	}
 
+	exists, err := ls.store.Lists().Exists(ctx, &model.ListF{ID: &listID, HasMedia: &media.ID})
+	if err != nil {
+		ls.logger.Error("error checking movie existence", err)
+		return fault.Internal("error adding movie to list")
+	} else if exists {
+		return fault.BadRequest("movie already in list")
+	}
+
 	if err = ls.store.Lists().AddMedia(ctx, list, media.ID); err != nil {
 		ls.logger.Error("error adding movie to list", err)
 		return fault.Internal("error adding movie to list")
@@ -315,7 +323,7 @@ func (ls *listService) AddMovieToList(ctx context.Context, memberID uuid.UUID, l
 }
 
 func (ls *listService) RemoveMovieFromList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error {
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMemberID: &memberID})
+	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMember: &memberID})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return fault.NotFound("list not found")
@@ -342,7 +350,7 @@ func (ls *listService) RemoveMovieFromList(ctx context.Context, memberID uuid.UU
 }
 
 func (ls *listService) AddShowToList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error {
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMemberID: &memberID})
+	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMember: &memberID})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return fault.NotFound("list not found")
@@ -360,6 +368,14 @@ func (ls *listService) AddShowToList(ctx context.Context, memberID uuid.UUID, li
 		return fault.Internal("error adding show to list")
 	}
 
+	exists, err := ls.store.Lists().Exists(ctx, &model.ListF{ID: &listID, HasMedia: &media.ID})
+	if err != nil {
+		ls.logger.Error("error checking movie existence", err)
+		return fault.Internal("error adding movie to list")
+	} else if exists {
+		return fault.BadRequest("movie already in list")
+	}
+
 	if err = ls.store.Lists().AddMedia(ctx, list, media.ID); err != nil {
 		ls.logger.Error("error adding show to list", err)
 		return fault.Internal("error adding show to list")
@@ -369,7 +385,7 @@ func (ls *listService) AddShowToList(ctx context.Context, memberID uuid.UUID, li
 }
 
 func (ls *listService) RemoveShowFromList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error {
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMemberID: &memberID})
+	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &listID, HasMember: &memberID})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return fault.NotFound("list not found")

@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
 )
 
@@ -33,5 +34,12 @@ func (List) Edges() []ent.Edge {
 		edge.From("members", User.Type).Ref("lists"),
 		// M2M Media <--> List
 		edge.From("medias", Media.Type).Ref("lists"),
+	}
+}
+
+func Indexes() []ent.Index {
+	return []ent.Index{
+		// a media can only be in a list once
+		index.Fields("id").Edges("medias").Unique(),
 	}
 }

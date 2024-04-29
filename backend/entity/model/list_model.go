@@ -27,5 +27,6 @@ type ListF struct {
 	CreatedAt *time.Time
 	UpdatedAt *time.Time
 
-	HasMemberID *uuid.UUID
+	HasMember *uuid.UUID
+	HasMedia  *uuid.UUID
 }

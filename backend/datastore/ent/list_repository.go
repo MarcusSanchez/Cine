@@ -3,6 +3,7 @@ package ent
 import (
 	"cine/datastore/ent/ent"
 	List "cine/datastore/ent/ent/list"
+	Media "cine/datastore/ent/ent/media"
 	"cine/datastore/ent/ent/predicate"
 	User "cine/datastore/ent/ent/user"
 	"cine/entity/model"
@@ -187,8 +188,11 @@ func (lr *listRepository) filters(listFs []*model.ListF) []predicate.List {
 		if listF.UpdatedAt != nil {
 			filters = append(filters, List.UpdatedAt(*listF.UpdatedAt))
 		}
-		if listF.HasMemberID != nil {
-			filters = append(filters, List.HasMembersWith(User.ID(*listF.HasMemberID)))
+		if listF.HasMember != nil {
+			filters = append(filters, List.HasMembersWith(User.ID(*listF.HasMember)))
+		}
+		if listF.HasMedia != nil {
+			filters = append(filters, List.HasMediasWith(Media.ID(*listF.HasMedia)))
 		}
 	}
 	return filters
