@@ -126,7 +126,11 @@ func (cr *commentRepository) AllWithReplyAndLikeCount(ctx context.Context, media
 
 func (cr *commentRepository) AllRepliesWithReplyAndLikeCount(ctx context.Context, comment *model.Comment) ([]*model.CommentWithRelationsCount, error) {
 	// TODO: Optimize this
-	q := c.entComment(comment).QueryReplies().WithLikes().WithReplies()
+	q := cr.client.Comment.Query()
+	q = q.Where(Comment.ID(comment.ID)).
+		QueryReplies().
+		WithLikes().
+		WithReplies()
 
 	replies, err := q.All(ctx)
 	if err != nil {

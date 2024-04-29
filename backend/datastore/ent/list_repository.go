@@ -105,7 +105,9 @@ func (lr *listRepository) DeleteExec(ctx context.Context, listFs ...*model.ListF
 }
 
 func (lr *listRepository) AllMembers(ctx context.Context, list *model.List) ([]*model.User, error) {
-	q := c.entList(list).QueryMembers()
+	q := lr.client.List.Query().
+		Where(List.ID(list.ID)).
+		QueryMembers()
 
 	users, err := q.All(ctx)
 	return c.users(users), c.error(err)
@@ -120,7 +122,7 @@ func (lr *listRepository) ExistsMember(ctx context.Context, list *model.List, us
 }
 
 func (lr *listRepository) AddMember(ctx context.Context, list *model.List, userID uuid.UUID) error {
-	q := lr.client.List.UpdateOne(c.entList(list))
+	q := lr.client.List.UpdateOneID(list.ID)
 	q = q.AddMemberIDs(userID)
 
 	_, err := q.Save(ctx)
@@ -128,7 +130,7 @@ func (lr *listRepository) AddMember(ctx context.Context, list *model.List, userI
 }
 
 func (lr *listRepository) RemoveMember(ctx context.Context, list *model.List, userID uuid.UUID) error {
-	q := lr.client.List.UpdateOne(c.entList(list))
+	q := lr.client.List.UpdateOneID(list.ID)
 	q = q.RemoveMemberIDs(userID)
 
 	_, err := q.Save(ctx)
@@ -136,7 +138,7 @@ func (lr *listRepository) RemoveMember(ctx context.Context, list *model.List, us
 }
 
 func (lr *listRepository) AddMedia(ctx context.Context, list *model.List, mediaID uuid.UUID) error {
-	q := lr.client.List.UpdateOne(c.entList(list))
+	q := lr.client.List.UpdateOneID(list.ID)
 	q = q.AddMediaIDs(mediaID)
 
 	_, err := q.Save(ctx)
@@ -144,7 +146,7 @@ func (lr *listRepository) AddMedia(ctx context.Context, list *model.List, mediaI
 }
 
 func (lr *listRepository) RemoveMedia(ctx context.Context, list *model.List, mediaID uuid.UUID) error {
-	q := lr.client.List.UpdateOne(c.entList(list))
+	q := lr.client.List.UpdateOneID(list.ID)
 	q = q.RemoveMediaIDs(mediaID)
 
 	_, err := q.Save(ctx)
@@ -152,7 +154,9 @@ func (lr *listRepository) RemoveMedia(ctx context.Context, list *model.List, med
 }
 
 func (lr *listRepository) AllMedia(ctx context.Context, list *model.List) ([]*model.Media, error) {
-	q := c.entList(list).QueryMedias()
+	q := lr.client.List.Query().
+		Where(List.ID(list.ID)).
+		QueryMedias()
 
 	medias, err := q.All(ctx)
 	return c.medias(medias), c.error(err)

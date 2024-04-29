@@ -110,15 +110,19 @@ func (ur *userRepository) DeleteExec(ctx context.Context, userFs ...*model.UserF
 }
 
 func (ur *userRepository) OneFriend(ctx context.Context, user *model.User, friendID uuid.UUID) (*model.User, error) {
-	q := ur.client.User.QueryFriends(c.entUser(user))
-	q = q.Where(User.ID(friendID))
+	q := ur.client.User.Query().
+		Where(User.ID(user.ID)).
+		QueryFriends().
+		Where(User.ID(friendID))
 
 	friend, err := q.First(ctx)
 	return c.user(friend), c.error(err)
 }
 
 func (ur *userRepository) AllFriends(ctx context.Context, user *model.User) ([]*model.User, error) {
-	q := ur.client.User.QueryFriends(c.entUser(user))
+	q := ur.client.User.Query()
+	q = q.Where(User.ID(user.ID)).
+		QueryFriends()
 
 	friends, err := q.All(ctx)
 	return c.users(friends), c.error(err)
@@ -141,7 +145,9 @@ func (ur *userRepository) RemoveFriend(ctx context.Context, user *model.User, fr
 }
 
 func (ur *userRepository) OneFollowed(ctx context.Context, user *model.User, followedID uuid.UUID) (*model.User, error) {
-	q := ur.client.User.QueryFollowing(c.entUser(user))
+	q := ur.client.User.Query()
+	q = q.Where(User.ID(user.ID)).
+		QueryFollowing()
 	q = q.Where(User.ID(followedID))
 
 	followed, err := q.First(ctx)
@@ -149,7 +155,9 @@ func (ur *userRepository) OneFollowed(ctx context.Context, user *model.User, fol
 }
 
 func (ur *userRepository) AllFollowed(ctx context.Context, user *model.User) ([]*model.User, error) {
-	q := ur.client.User.QueryFollowing(c.entUser(user))
+	q := ur.client.User.Query()
+	q = q.Where(User.ID(user.ID)).
+		QueryFollowing()
 
 	followed, err := q.All(ctx)
 	return c.users(followed), c.error(err)
@@ -173,7 +181,9 @@ func (ur *userRepository) UnfollowUser(ctx context.Context, user *model.User, fo
 }
 
 func (ur *userRepository) OneFollower(ctx context.Context, user *model.User, followerID uuid.UUID) (*model.User, error) {
-	q := ur.client.User.QueryFollowers(c.entUser(user))
+	q := ur.client.User.Query()
+	q = q.Where(User.ID(user.ID)).
+		QueryFollowers()
 	q = q.Where(User.ID(followerID))
 
 	follower, err := q.First(ctx)
@@ -181,7 +191,9 @@ func (ur *userRepository) OneFollower(ctx context.Context, user *model.User, fol
 }
 
 func (ur *userRepository) AllFollowers(ctx context.Context, user *model.User) ([]*model.User, error) {
-	q := ur.client.User.QueryFollowers(c.entUser(user))
+	q := ur.client.User.Query()
+	q = q.Where(User.ID(user.ID)).
+		QueryFollowers()
 
 	followers, err := q.All(ctx)
 	return c.users(followers), c.error(err)

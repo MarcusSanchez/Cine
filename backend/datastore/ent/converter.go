@@ -35,22 +35,6 @@ func (c converter) users(users []*ent.User) []*model.User {
 	return result
 }
 
-func (c converter) entUser(user *model.User) *ent.User {
-	if user != nil {
-		return &ent.User{
-			ID:             user.ID,
-			DisplayName:    user.DisplayName,
-			Username:       user.Username,
-			Email:          user.Email,
-			Password:       user.Password,
-			ProfilePicture: user.ProfilePicture,
-			CreatedAt:      user.CreatedAt,
-			UpdatedAt:      user.UpdatedAt,
-		}
-	}
-	return nil
-}
-
 func (c converter) session(session *ent.Session) *model.Session {
 	if session != nil {
 		return &model.Session{
@@ -95,21 +79,6 @@ func (c converter) comments(comments []*ent.Comment) []*model.Comment {
 		result = append(result, c.comment(comment))
 	}
 	return result
-}
-
-func (c converter) entComment(comment *model.Comment) *ent.Comment {
-	if comment != nil {
-		return &ent.Comment{
-			ID:           comment.ID,
-			UserID:       comment.UserID,
-			MediaID:      comment.MediaID,
-			ReplyingToID: comment.ReplyingToID,
-			Content:      comment.Content,
-			CreatedAt:    comment.CreatedAt,
-			UpdatedAt:    comment.UpdatedAt,
-		}
-	}
-	return nil
 }
 
 func (c converter) like(like *ent.Like) *model.Like {
@@ -176,19 +145,6 @@ func (c converter) lists(lists []*ent.List) []*model.List {
 		result = append(result, c.list(list))
 	}
 	return result
-}
-
-func (c converter) entList(list *model.List) *ent.List {
-	if list != nil {
-		return &ent.List{
-			ID:        list.ID,
-			Title:     list.Title,
-			Public:    list.Public,
-			CreatedAt: list.CreatedAt,
-			UpdatedAt: list.UpdatedAt,
-		}
-	}
-	return nil
 }
 
 func (c converter) media(media *ent.Media) *model.Media {
