@@ -21,7 +21,7 @@ func (mc *MediaController) Routes(router fiber.Router, mw *middleware.Middleware
 	media.Get("/show/:ref", mw.SignedIn, mw.ParseInt("ref"), mc.GetShow)
 }
 
-// GetMovie [Get] /medias/movie/:ref
+// GetMovie [Get] /api/medias/movie/:ref
 func (mc *MediaController) GetMovie(c *fiber.Ctx) error {
 	ref := c.Locals("ref").(int)
 
@@ -33,7 +33,7 @@ func (mc *MediaController) GetMovie(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"detailed-movie": movie})
 }
 
-// GetShow [Get] /medias/show/:ref
+// GetShow [Get] /api/medias/show/:ref
 func (mc *MediaController) GetShow(c *fiber.Ctx) error {
 	ref := c.Locals("ref").(int)
 
