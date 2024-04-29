@@ -149,10 +149,10 @@ func (mr *mediaRepository) create(media *model.Media) *ent.MediaCreate {
 		SetRef(media.Ref).
 		SetMediaType(Media.MediaType(media.MediaType)).
 		SetOverview(media.Overview).
-		SetBackdropPath(media.BackdropPath).
+		SetNillableBackdropPath(media.BackdropPath).
 		SetLanguage(media.Language).
-		SetPosterPath(media.PosterPath).
-		SetReleaseDate(media.ReleaseDate).
+		SetNillablePosterPath(media.PosterPath).
+		SetNillableReleaseDate(media.ReleaseDate).
 		SetTitle(media.Title).
 		SetCreatedAt(time.Now())
 }

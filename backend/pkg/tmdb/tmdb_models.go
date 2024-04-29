@@ -32,7 +32,7 @@ type DetailedGenre struct {
 
 type DetailedMovie struct {
 	Adult            bool            `json:"adult"`
-	BackdropPath     string          `json:"backdrop_path"`
+	BackdropPath     *string         `json:"backdrop_path,optional"`
 	Budget           int             `json:"budget"`
 	Genres           []DetailedGenre `json:"genres"`
 	Homepage         string          `json:"homepage"`
@@ -43,8 +43,8 @@ type DetailedMovie struct {
 	OriginalTitle    string          `json:"original_title"`
 	Overview         string          `json:"overview"`
 	Popularity       float64         `json:"popularity"`
-	PosterPath       string          `json:"poster_path"`
-	ReleaseDate      string          `json:"release_date"`
+	PosterPath       *string         `json:"poster_path,optional"`
+	ReleaseDate      *string         `json:"release_date,optional"`
 	Revenue          int             `json:"revenue"`
 	Runtime          int             `json:"runtime"`
 	Status           string          `json:"status"`
@@ -61,7 +61,7 @@ type CreatedBy struct {
 	Name         string  `json:"name"`
 	OriginalName string  `json:"original_name"`
 	Gender       int     `json:"gender"`
-	ProfilePath  *string `json:"profile_path"` // Use pointer to handle null values
+	ProfilePath  *string `json:"profile_path"`
 }
 
 type Network struct {
@@ -84,16 +84,16 @@ type Season struct {
 
 type DetailedShow struct {
 	Adult            bool            `json:"adult"`
-	BackdropPath     string          `json:"backdrop_path"`
+	BackdropPath     *string         `json:"backdrop_path,optional"`
 	CreatedBy        []CreatedBy     `json:"created_by"`
 	EpisodeRunTime   []int           `json:"episode_run_time"`
-	FirstAirDate     string          `json:"first_air_date"`
+	FirstAirDate     *string         `json:"first_air_date,optional"`
 	Genres           []DetailedGenre `json:"genres"`
 	Homepage         string          `json:"homepage"`
 	ID               int             `json:"id"`
 	InProduction     bool            `json:"in_production"`
 	Languages        []string        `json:"languages"`
-	LastAirDate      string          `json:"last_air_date"`
+	LastAirDate      *string         `json:"last_air_date,optional"`
 	Name             string          `json:"name"`
 	Networks         []Network       `json:"networks"`
 	NumberOfEpisodes int             `json:"number_of_episodes"`
@@ -103,7 +103,7 @@ type DetailedShow struct {
 	OriginalName     string          `json:"original_name"`
 	Overview         string          `json:"overview"`
 	Popularity       float64         `json:"popularity"`
-	PosterPath       string          `json:"poster_path"`
+	PosterPath       *string         `json:"poster_path,optional"`
 	Seasons          []Season        `json:"seasons"`
 	Status           string          `json:"status"`
 	Tagline          string          `json:"tagline"`

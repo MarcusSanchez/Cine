@@ -17,10 +17,10 @@ type Media struct {
 	Ref          int        `json:"ref"`
 	MediaType    MediaType  `json:"media_type"`
 	Overview     string     `json:"overview"`
-	BackdropPath string     `json:"backdrop_path"`
+	BackdropPath *string    `json:"backdrop_path"`
 	Language     string     `json:"language"`
-	PosterPath   string     `json:"poster_path"`
-	ReleaseDate  string     `json:"release_date"`
+	PosterPath   *string    `json:"poster_path"`
+	ReleaseDate  *string    `json:"release_date"`
 	Title        string     `json:"title"`
 	CreatedAt    time.Time  `json:"created_at"`
 	UpdatedAt    *time.Time `json:"updated_at"`
