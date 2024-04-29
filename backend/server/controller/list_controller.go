@@ -24,21 +24,21 @@ func (lc *ListController) Routes(router fiber.Router, mw *middleware.Middleware)
 	list := router.Group("/lists")
 
 	list.Get("/", mw.SignedIn, lc.GetYourLists)
-	list.Get("/:user-id", mw.SignedIn, mw.ParseUUID("user-id"), lc.GetUsersPublicLists)
-	list.Get("/:list-id/detailed", mw.SignedIn, mw.ParseUUID("list-id"), lc.GetYourDetailedList)
-	list.Get("/:list-id/detailed/public", mw.SignedIn, mw.ParseUUID("list-id"), lc.GetPublicDetailedList)
+	list.Get("/:userID", mw.SignedIn, mw.ParseUUID("userID"), lc.GetUsersPublicLists)
+	list.Get("/:listID/detailed", mw.SignedIn, mw.ParseUUID("listID"), lc.GetYourDetailedList)
+	list.Get("/:listID/detailed/public", mw.SignedIn, mw.ParseUUID("listID"), lc.GetPublicDetailedList)
 
-	list.Put("/:list-id", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id"), lc.UpdateList)
+	list.Put("/:listID", mw.SignedIn, mw.CSRF, mw.ParseUUID("listID"), lc.UpdateList)
 
 	list.Post("/", mw.SignedIn, mw.CSRF, lc.CreateList)
-	list.Post("/:list-id/members/:user-id", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id", "user-id"), lc.AddMemberToList)
-	list.Post("/:list-id/movie/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id"), lc.AddMovieToList)
-	list.Post("/:list-id/show/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id"), mw.ParseInt("ref"), lc.AddShowToList)
+	list.Post("/:listID/members/:userID", mw.SignedIn, mw.CSRF, mw.ParseUUID("listID", "userID"), lc.AddMemberToList)
+	list.Post("/:listID/movie/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("listID"), lc.AddMovieToList)
+	list.Post("/:listID/show/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("listID"), mw.ParseInt("ref"), lc.AddShowToList)
 
-	list.Delete("/:list-id", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id"), lc.DeleteList)
-	list.Delete("/:list-id/members/:user-id", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id", "user-id"), lc.RemoveMemberFromList)
-	list.Delete("/:list-id/movie/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id"), mw.ParseInt("ref"), lc.RemoveMovieFromList)
-	list.Delete("/:list-id/show/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("list-id"), mw.ParseInt("ref"), lc.RemoveShowFromList)
+	list.Delete("/:listID", mw.SignedIn, mw.CSRF, mw.ParseUUID("listID"), lc.DeleteList)
+	list.Delete("/:listID/members/:userID", mw.SignedIn, mw.CSRF, mw.ParseUUID("listID", "userID"), lc.RemoveMemberFromList)
+	list.Delete("/:listID/movie/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("listID"), mw.ParseInt("ref"), lc.RemoveMovieFromList)
+	list.Delete("/:listID/show/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("listID"), mw.ParseInt("ref"), lc.RemoveShowFromList)
 }
 
 // CreateList [POST] /api/lists
@@ -67,10 +67,10 @@ func (lc *ListController) CreateList(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"list": list})
 }
 
-// DeleteList [DELETE] /api/lists/:list-id
+// DeleteList [DELETE] /api/lists/:lisIDt
 func (lc *ListController) DeleteList(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
-	listID := c.Locals("list-id").(uuid.UUID)
+	listID := c.Locals("listID").(uuid.UUID)
 
 	err := lc.list.DeleteList(c.Context(), session.UserID, listID)
 	if err != nil {
@@ -80,7 +80,7 @@ func (lc *ListController) DeleteList(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusOK)
 }
 
-// UpdateList [PUT] /api/lists/:list-id
+// UpdateList [PUT] /api/lists/:lisIDt
 func (lc *ListController) UpdateList(c *fiber.Ctx) error {
 
 	type Payload struct {
@@ -98,7 +98,7 @@ func (lc *ListController) UpdateList(c *fiber.Ctx) error {
 	}
 
 	session := c.Locals("session").(*model.Session)
-	listID := c.Locals("list-id").(uuid.UUID)
+	listID := c.Locals("listID").(uuid.UUID)
 	updater := &model.ListU{Title: p.Title, Public: p.Public}
 
 	list, err := lc.list.UpdateList(c.Context(), session.UserID, listID, updater)
@@ -109,11 +109,11 @@ func (lc *ListController) UpdateList(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"list": list})
 }
 
-// AddMemberToList [POST] /api/lists/:list-id/members/:user-id
+// AddMemberToList [POST] /api/lists/:listID/members/:useIDr
 func (lc *ListController) AddMemberToList(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
-	listID := c.Locals("list-id").(uuid.UUID)
-	userID := c.Locals("user-id").(uuid.UUID)
+	listID := c.Locals("listID").(uuid.UUID)
+	userID := c.Locals("userID").(uuid.UUID)
 
 	err := lc.list.AddMemberToList(c.Context(), session.UserID, listID, userID)
 	if err != nil {
@@ -123,11 +123,11 @@ func (lc *ListController) AddMemberToList(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusOK)
 }
 
-// RemoveMemberFromList [DELETE] /api/lists/:list-id/members/:user-id
+// RemoveMemberFromList [DELETE] /api/lists/:listID/members/:useIDr
 func (lc *ListController) RemoveMemberFromList(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
-	listID := c.Locals("list-id").(uuid.UUID)
-	userID := c.Locals("user-id").(uuid.UUID)
+	listID := c.Locals("listID").(uuid.UUID)
+	userID := c.Locals("userID").(uuid.UUID)
 
 	err := lc.list.RemoveMemberFromList(c.Context(), session.UserID, listID, userID)
 	if err != nil {
@@ -149,9 +149,9 @@ func (lc *ListController) GetYourLists(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"lists": lists})
 }
 
-// GetUsersPublicLists [GET] /api/lists/:user-id
+// GetUsersPublicLists [GET] /api/lists/:useIDr
 func (lc *ListController) GetUsersPublicLists(c *fiber.Ctx) error {
-	userID := c.Locals("user-id").(uuid.UUID)
+	userID := c.Locals("userID").(uuid.UUID)
 
 	lists, err := lc.list.GetPublicLists(c.Context(), userID)
 	if err != nil {
@@ -161,10 +161,10 @@ func (lc *ListController) GetUsersPublicLists(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"lists": lists})
 }
 
-// GetYourDetailedList [GET] /api/lists/:list-id/detailed
+// GetYourDetailedList [GET] /api/lists/:listID/detailed
 func (lc *ListController) GetYourDetailedList(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
-	listID := c.Locals("list-id").(uuid.UUID)
+	listID := c.Locals("listID").(uuid.UUID)
 
 	detailedList, err := lc.list.GetPrivateDetailedList(c.Context(), session.UserID, listID)
 	if err != nil {
@@ -174,9 +174,9 @@ func (lc *ListController) GetYourDetailedList(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"detailed-list": detailedList})
 }
 
-// GetPublicDetailedList [GET] /api/lists/:list-id/detailed/public
+// GetPublicDetailedList [GET] /api/lists/:listID/detailed/public
 func (lc *ListController) GetPublicDetailedList(c *fiber.Ctx) error {
-	listID := c.Locals("list-id").(uuid.UUID)
+	listID := c.Locals("listID").(uuid.UUID)
 
 	detailedList, err := lc.list.GetPublicDetailedList(c.Context(), listID)
 	if err != nil {
@@ -186,10 +186,10 @@ func (lc *ListController) GetPublicDetailedList(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"detailed-list": detailedList})
 }
 
-// AddMovieToList [POST] /api/lists/:list-id/movie/:ref
+// AddMovieToList [POST] /api/lists/:listID/movie/:ref
 func (lc *ListController) AddMovieToList(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
-	listID := c.Locals("list-id").(uuid.UUID)
+	listID := c.Locals("listID").(uuid.UUID)
 	ref := c.Locals("ref").(int)
 
 	err := lc.list.AddMovieToList(c.Context(), session.UserID, listID, ref)
@@ -200,10 +200,10 @@ func (lc *ListController) AddMovieToList(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusOK)
 }
 
-// RemoveMovieFromList [DELETE] /api/lists/:list-id/movie/:ref
+// RemoveMovieFromList [DELETE] /api/lists/:listID/movie/:ref
 func (lc *ListController) RemoveMovieFromList(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
-	listID := c.Locals("list-id").(uuid.UUID)
+	listID := c.Locals("listID").(uuid.UUID)
 	ref := c.Locals("ref").(int)
 
 	err := lc.list.RemoveMovieFromList(c.Context(), session.UserID, listID, ref)
@@ -214,10 +214,10 @@ func (lc *ListController) RemoveMovieFromList(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusOK)
 }
 
-// AddShowToList [POST] /api/lists/:list-id/show/:ref
+// AddShowToList [POST] /api/lists/:listID/show/:ref
 func (lc *ListController) AddShowToList(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
-	listID := c.Locals("list-id").(uuid.UUID)
+	listID := c.Locals("listID").(uuid.UUID)
 	ref := c.Locals("ref").(int)
 
 	err := lc.list.AddShowToList(c.Context(), session.UserID, listID, ref)
@@ -228,10 +228,10 @@ func (lc *ListController) AddShowToList(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusOK)
 }
 
-// RemoveShowFromList [DELETE] /api/lists/:list-id/show/:ref
+// RemoveShowFromList [DELETE] /api/lists/:listID/show/:ref
 func (lc *ListController) RemoveShowFromList(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
-	listID := c.Locals("list-id").(uuid.UUID)
+	listID := c.Locals("listID").(uuid.UUID)
 	ref := c.Locals("ref").(int)
 
 	err := lc.list.RemoveShowFromList(c.Context(), session.UserID, listID, ref)

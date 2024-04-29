@@ -24,18 +24,18 @@ func NewCommentController(commentService service.CommentService) *CommentControl
 func (cc *CommentController) Routes(router fiber.Router, mw *middleware.Middleware) {
 	comment := router.Group("/comments")
 
-	comment.Get("/:media-type/:ref", mw.SignedIn, mw.ParseInt("ref"), mw.ParseMediaType("media-type"), cc.GetComments)
-	comment.Get("/:comment-id/replies", mw.SignedIn, mw.ParseUUID("comment-id"), cc.GetCommentReplies)
+	comment.Get("/:mediaType/:ref", mw.SignedIn, mw.ParseInt("ref"), mw.ParseMediaType("mediaType"), cc.GetComments)
+	comment.Get("/:commentID/replies", mw.SignedIn, mw.ParseUUID("commentID"), cc.GetCommentReplies)
 
 	comment.Post("/", mw.SignedIn, mw.CSRF, cc.CreateComment)
-	comment.Post("/:comment-id", mw.SignedIn, mw.CSRF, mw.ParseUUID("comment-id"), cc.UpdateContent)
-	comment.Post("/like/:comment-id", mw.SignedIn, mw.CSRF, mw.ParseUUID("comment-id"), cc.LikeComment)
+	comment.Post("/:commentID", mw.SignedIn, mw.CSRF, mw.ParseUUID("commentID"), cc.UpdateContent)
+	comment.Post("/like/:commentID", mw.SignedIn, mw.CSRF, mw.ParseUUID("commentID"), cc.LikeComment)
 
-	comment.Delete("/:comment-id", mw.SignedIn, mw.CSRF, mw.ParseUUID("comment-id"), cc.DeleteComment)
-	comment.Delete("/like/:like-id", mw.SignedIn, mw.CSRF, mw.ParseUUID("like-id"), cc.UnlikeComment)
+	comment.Delete("/:commentID", mw.SignedIn, mw.CSRF, mw.ParseUUID("commentID"), cc.DeleteComment)
+	comment.Delete("/like/:likeID", mw.SignedIn, mw.CSRF, mw.ParseUUID("likeID"), cc.UnlikeComment)
 }
 
-// CreateComment [POST] /api/comments/:media-type/:ref
+// CreateComment [POST] /api/comments/:mediaType/:ref
 func (cc *CommentController) CreateComment(c *fiber.Ctx) error {
 
 	type Payload struct {
@@ -83,9 +83,9 @@ func (cc *CommentController) CreateComment(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(fiber.Map{"comment": comment})
 }
 
-// UpdateContent [POST] /api/comments/:comment-id
+// UpdateContent [POST] /api/comments/:commenIDt
 func (cc *CommentController) UpdateContent(c *fiber.Ctx) error {
-	commentID := c.Locals("comment-id").(uuid.UUID)
+	commentID := c.Locals("commentID").(uuid.UUID)
 
 	type Payload struct {
 		Content string `json:"content"`
@@ -110,10 +110,10 @@ func (cc *CommentController) UpdateContent(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"comment": comment})
 }
 
-// DeleteComment [DELETE] /api/comments/:comment-id
+// DeleteComment [DELETE] /api/comments/:commenIDt
 func (cc *CommentController) DeleteComment(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
-	commentID := c.Locals("comment-id").(uuid.UUID)
+	commentID := c.Locals("commentID").(uuid.UUID)
 
 	err := cc.comment.DeleteComment(c.Context(), session.UserID, commentID)
 	if err != nil {
@@ -123,10 +123,10 @@ func (cc *CommentController) DeleteComment(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusNoContent)
 }
 
-// GetComments [GET] /api/comments/:media-type/:ref
+// GetComments [GET] /api/comments/:mediaType/:ref
 func (cc *CommentController) GetComments(c *fiber.Ctx) error {
 	ref := c.Locals("ref").(int)
-	mediaType := c.Locals("media-type").(model.MediaType)
+	mediaType := c.Locals("mediaType").(model.MediaType)
 
 	comments, err := cc.comment.GetComments(c.Context(), ref, mediaType)
 	if err != nil {
@@ -136,9 +136,9 @@ func (cc *CommentController) GetComments(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"comments": comments})
 }
 
-// GetCommentReplies [GET] /api/comments/:comment-id/replies
+// GetCommentReplies [GET] /api/comments/:commentID/replies
 func (cc *CommentController) GetCommentReplies(c *fiber.Ctx) error {
-	commentID := c.Locals("comment-id").(uuid.UUID)
+	commentID := c.Locals("commentID").(uuid.UUID)
 
 	replies, err := cc.comment.GetCommentReplies(c.Context(), commentID)
 	if err != nil {
@@ -148,10 +148,10 @@ func (cc *CommentController) GetCommentReplies(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"replies": replies})
 }
 
-// LikeComment [POST] /api/comments/:comment-id/like
+// LikeComment [POST] /api/comments/:commentID/like
 func (cc *CommentController) LikeComment(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
-	commentID := c.Locals("comment-id").(uuid.UUID)
+	commentID := c.Locals("commentID").(uuid.UUID)
 
 	like, err := cc.comment.LikeComment(
 		c.Context(), &model.Like{
@@ -166,10 +166,10 @@ func (cc *CommentController) LikeComment(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(fiber.Map{"like": like})
 }
 
-// UnlikeComment [DELETE] /api/comments/:like-id
+// UnlikeComment [DELETE] /api/comments/:likIDe
 func (cc *CommentController) UnlikeComment(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
-	likeID := c.Locals("like-id").(uuid.UUID)
+	likeID := c.Locals("likeID").(uuid.UUID)
 
 	err := cc.comment.UnlikeComment(c.Context(), session.UserID, likeID)
 	if err != nil {

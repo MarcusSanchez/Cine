@@ -23,13 +23,13 @@ func NewReviewController(review service.ReviewService) *ReviewController {
 
 func (rc *ReviewController) Routes(router fiber.Router, mw *middleware.Middleware) {
 	review := router.Group("/reviews")
-	review.Post("/:media-type/:ref", mw.SignedIn, mw.CSRF, mw.ParseMediaType("media-type"), mw.ParseInt("ref"), rc.CreateReview)
-	review.Put("/:review-id", mw.SignedIn, mw.CSRF, mw.ParseUUID("review-id"), rc.UpdateReview)
-	review.Delete("/:review-id", mw.SignedIn, mw.CSRF, mw.ParseUUID("review-id"), rc.DeleteReview)
-	review.Get("/:media-type/:ref", mw.SignedIn, mw.ParseMediaType("media-type"), mw.ParseInt("ref"), rc.GetAllReviews)
+	review.Post("/:mediaType/:ref", mw.SignedIn, mw.CSRF, mw.ParseMediaType("mediaType"), mw.ParseInt("ref"), rc.CreateReview)
+	review.Put("/:reviewID", mw.SignedIn, mw.CSRF, mw.ParseUUID("reviewID"), rc.UpdateReview)
+	review.Delete("/:reviewID", mw.SignedIn, mw.CSRF, mw.ParseUUID("reviewID"), rc.DeleteReview)
+	review.Get("/:mediaType/:ref", mw.SignedIn, mw.ParseMediaType("mediaType"), mw.ParseInt("ref"), rc.GetAllReviews)
 }
 
-// CreateReview [POST] /api/review/:media-type/:ref
+// CreateReview [POST] /api/review/:mediaType/:ref
 func (rc *ReviewController) CreateReview(c *fiber.Ctx) error {
 
 	type Payload struct {
@@ -52,7 +52,7 @@ func (rc *ReviewController) CreateReview(c *fiber.Ctx) error {
 
 	session := c.Locals("session").(*model.Session)
 	ref := c.Locals("ref").(int)
-	mediaType := c.Locals("media-type").(model.MediaType)
+	mediaType := c.Locals("mediaType").(model.MediaType)
 
 	review, err := rc.review.CreateReview(
 		c.Context(), &service.CreateReviewInput{
@@ -73,7 +73,7 @@ func (rc *ReviewController) CreateReview(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(fiber.Map{"review": review})
 }
 
-// UpdateReview [PUT] /api/review/:review-id
+// UpdateReview [PUT] /api/review/:reviewID
 func (rc *ReviewController) UpdateReview(c *fiber.Ctx) error {
 
 	type Payload struct {
@@ -95,7 +95,7 @@ func (rc *ReviewController) UpdateReview(c *fiber.Ctx) error {
 	}
 
 	session := c.Locals("session").(*model.Session)
-	reviewID := c.Locals("review-id").(uuid.UUID)
+	reviewID := c.Locals("reviewID").(uuid.UUID)
 
 	review, err := rc.review.UpdateReview(c.Context(), session.UserID, reviewID, &model.ReviewU{})
 	if err != nil {
@@ -105,10 +105,10 @@ func (rc *ReviewController) UpdateReview(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"review": review})
 }
 
-// DeleteReview [DELETE] /api/review/:review-id
+// DeleteReview [DELETE] /api/review/:reviewID
 func (rc *ReviewController) DeleteReview(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
-	reviewID := c.Locals("review-id").(uuid.UUID)
+	reviewID := c.Locals("reviewID").(uuid.UUID)
 
 	err := rc.review.DeleteReview(c.Context(), session.UserID, reviewID)
 	if err != nil {
@@ -118,10 +118,10 @@ func (rc *ReviewController) DeleteReview(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusNoContent)
 }
 
-// GetAllReviews [GET] /api/review/:media-type/:ref
+// GetAllReviews [GET] /api/review/:mediaType/:ref
 func (rc *ReviewController) GetAllReviews(c *fiber.Ctx) error {
 	ref := c.Locals("ref").(int)
-	mediaType := c.Locals("media-type").(model.MediaType)
+	mediaType := c.Locals("mediaType").(model.MediaType)
 
 	reviews, err := rc.review.GetAllReviews(c.Context(), ref, mediaType)
 	if err != nil {
