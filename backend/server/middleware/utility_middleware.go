@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"cine/entity/model"
 	"cine/entity/schemas"
 	"cine/pkg/fault"
 	"github.com/gofiber/fiber/v2"
@@ -39,7 +40,7 @@ func (m *Middleware) ParseMediaType(key string) func(*fiber.Ctx) error {
 		if errs := schemas.MediaTypeSchema.Validate(mediaType); errs != nil {
 			return fault.BadRequest(key + " must be a valid media type")
 		}
-		c.Locals(key, mediaType)
+		c.Locals(key, model.MediaType(mediaType))
 		return c.Next()
 	}
 }
