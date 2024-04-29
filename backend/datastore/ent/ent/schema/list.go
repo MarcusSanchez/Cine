@@ -30,7 +30,7 @@ func (List) Edges() []ent.Edge {
 		// O2M User (owner) <--> List
 		edge.From("owner", User.Type).Ref("owned_lists").Field("owner_id").Unique().Immutable().Required(),
 		// M2M User (members) <--> List
-		edge.From("members", User.Type).Ref("lists").Required(),
+		edge.From("members", User.Type).Ref("lists"),
 		// M2M Media <--> List
 		edge.From("medias", Media.Type).Ref("lists"),
 	}
