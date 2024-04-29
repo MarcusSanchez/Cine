@@ -28,6 +28,6 @@ func NewMiddleware(
 }
 
 func (m *Middleware) All(app *fiber.App) {
-	app.Use(recovery.New())
 	app.Use(log.New())
+	app.Use(recovery.New())
 }
