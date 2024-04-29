@@ -77,7 +77,7 @@ func (lc *ListController) DeleteList(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.SendStatus(http.StatusOK)
+	return c.SendStatus(http.StatusNoContent)
 }
 
 // UpdateList [PUT] /api/lists/:lisIDt
@@ -120,7 +120,7 @@ func (lc *ListController) AddMemberToList(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.SendStatus(http.StatusOK)
+	return c.SendStatus(http.StatusNoContent)
 }
 
 // RemoveMemberFromList [DELETE] /api/lists/:listID/members/:useIDr
