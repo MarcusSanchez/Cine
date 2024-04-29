@@ -24,15 +24,16 @@ func NewCommentController(commentService service.CommentService) *CommentControl
 func (cc *CommentController) Routes(router fiber.Router, mw *middleware.Middleware) {
 	comment := router.Group("/comments")
 
-	comment.Get("/:mediaType/:ref", mw.SignedIn, mw.ParseInt("ref"), mw.ParseMediaType("mediaType"), cc.GetComments)
 	comment.Get("/:commentID/replies", mw.SignedIn, mw.ParseUUID("commentID"), cc.GetCommentReplies)
+	comment.Get("/:mediaType/:ref", mw.SignedIn, mw.ParseInt("ref"), mw.ParseMediaType("mediaType"), cc.GetComments)
 
-	comment.Post("/", mw.SignedIn, mw.CSRF, cc.CreateComment)
-	comment.Post("/:commentID", mw.SignedIn, mw.CSRF, mw.ParseUUID("commentID"), cc.UpdateContent)
+	comment.Put("/:commentID", mw.SignedIn, mw.CSRF, mw.ParseUUID("commentID"), cc.UpdateContent)
+
 	comment.Post("/like/:commentID", mw.SignedIn, mw.CSRF, mw.ParseUUID("commentID"), cc.LikeComment)
+	comment.Post("/:mediaType/:ref", mw.SignedIn, mw.CSRF, mw.ParseMediaType("mediaType"), mw.ParseInt("ref"), cc.CreateComment)
 
-	comment.Delete("/:commentID", mw.SignedIn, mw.CSRF, mw.ParseUUID("commentID"), cc.DeleteComment)
 	comment.Delete("/like/:likeID", mw.SignedIn, mw.CSRF, mw.ParseUUID("likeID"), cc.UnlikeComment)
+	comment.Delete("/:commentID", mw.SignedIn, mw.CSRF, mw.ParseUUID("commentID"), cc.DeleteComment)
 }
 
 // CreateComment [POST] /api/comments/:mediaType/:ref
@@ -41,8 +42,6 @@ func (cc *CommentController) CreateComment(c *fiber.Ctx) error {
 	type Payload struct {
 		Content      string  `json:"content"                 z:"content"`
 		ReplyingToID *string `json:"replying_to_id,optional" z:"replying_to_id"`
-		MediaType    string  `json:"media_type"              z:"media_type"`
-		Ref          int     `json:"ref"`
 	}
 
 	p, err := parse.JSON[Payload](c.Body())
@@ -53,7 +52,6 @@ func (cc *CommentController) CreateComment(c *fiber.Ctx) error {
 	schema := z.Struct{
 		"content":        schemas.CommentContentSchema,
 		"replying_to_id": schemas.CommentReplyingToIDSchema.Optional(),
-		"media_type":     schemas.MediaTypeSchema,
 	}
 	if errs := schema.Validate(p); errs != nil {
 		return fault.Validation(errs.One())
@@ -66,16 +64,16 @@ func (cc *CommentController) CreateComment(c *fiber.Ctx) error {
 	}
 
 	session := c.Locals("session").(*model.Session)
+	ref := c.Locals("ref").(int)
+	mediaType := c.Locals("mediaType").(model.MediaType)
 
-	comment, err := cc.comment.CreateComment(c.Context(), service.CreateCommentInput{
-		UserID: session.UserID,
-		Comment: &model.Comment{
+	comment, err := cc.comment.CreateComment(c.Context(),
+		ref, mediaType, &model.Comment{
+			UserID:       &session.UserID,
 			Content:      p.Content,
 			ReplyingToID: replyingToID,
 		},
-		Ref:       p.Ref,
-		MediaType: model.MediaType(p.MediaType),
-	})
+	)
 	if err != nil {
 		return err
 	}
@@ -83,7 +81,7 @@ func (cc *CommentController) CreateComment(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(fiber.Map{"comment": comment})
 }
 
-// UpdateContent [POST] /api/comments/:commenIDt
+// UpdateContent [PUT] /api/comments/:commentID
 func (cc *CommentController) UpdateContent(c *fiber.Ctx) error {
 	commentID := c.Locals("commentID").(uuid.UUID)
 
@@ -110,7 +108,7 @@ func (cc *CommentController) UpdateContent(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"comment": comment})
 }
 
-// DeleteComment [DELETE] /api/comments/:commenIDt
+// DeleteComment [DELETE] /api/comments/:commentID
 func (cc *CommentController) DeleteComment(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
 	commentID := c.Locals("commentID").(uuid.UUID)

@@ -10,7 +10,7 @@ import (
 )
 
 type CommentService interface {
-	CreateComment(ctx context.Context, input CreateCommentInput) (*model.Comment, error)
+	CreateComment(ctx context.Context, ref int, mediaType model.MediaType, comment *model.Comment) (*model.Comment, error)
 	UpdateComment(ctx context.Context, userID, commentID uuid.UUID, content string) (*model.Comment, error)
 	DeleteComment(ctx context.Context, userID, commentID uuid.UUID) error
 	GetComments(ctx context.Context, ref int, mediaType model.MediaType) ([]*model.CommentWithRelationsCount, error)
@@ -33,15 +33,8 @@ func NewCommentService(store datastore.Store, logger logger.Logger, media MediaS
 	}
 }
 
-type CreateCommentInput struct {
-	UserID    uuid.UUID
-	Comment   *model.Comment
-	Ref       int
-	MediaType model.MediaType
-}
-
-func (cs *commentService) CreateComment(ctx context.Context, input CreateCommentInput) (*model.Comment, error) {
-	exists, err := cs.store.Users().Exists(ctx, &model.UserF{ID: &input.UserID})
+func (cs *commentService) CreateComment(ctx context.Context, ref int, mediaType model.MediaType, comment *model.Comment) (*model.Comment, error) {
+	exists, err := cs.store.Users().Exists(ctx, &model.UserF{ID: comment.UserID})
 	if err != nil {
 		cs.logger.Error("failed checking user existence", err)
 		return nil, fault.Internal("failed to create comment")
@@ -49,7 +42,7 @@ func (cs *commentService) CreateComment(ctx context.Context, input CreateComment
 		return nil, fault.NotFound("user not found")
 	}
 
-	media, err := cs.media.GetMedia(ctx, input.Ref, input.MediaType)
+	media, err := cs.media.GetMedia(ctx, ref, mediaType)
 	if e, ok := fault.As(err); ok {
 		if e.Code == fault.CodeNotFound {
 			return nil, fault.NotFound("media not found")
@@ -57,10 +50,10 @@ func (cs *commentService) CreateComment(ctx context.Context, input CreateComment
 		cs.logger.Error("failed getting media", err)
 		return nil, fault.Internal("failed to create comment")
 	}
-	input.Comment.MediaID = media.ID
+	comment.MediaID = media.ID
 
-	if input.Comment.ReplyingToID != nil {
-		exists, err = cs.store.Comments().Exists(ctx, &model.CommentF{ID: input.Comment.ReplyingToID})
+	if comment.ReplyingToID != nil {
+		exists, err = cs.store.Comments().Exists(ctx, &model.CommentF{ID: comment.ReplyingToID})
 		if err != nil {
 			cs.logger.Error("failed checking comment existence", err)
 			return nil, fault.Internal("failed to create comment")
@@ -69,7 +62,7 @@ func (cs *commentService) CreateComment(ctx context.Context, input CreateComment
 		}
 	}
 
-	comment, err := cs.store.Comments().Insert(ctx, input.Comment)
+	comment, err = cs.store.Comments().Insert(ctx, comment)
 	if err != nil {
 		cs.logger.Error("failed creating comment", err)
 		return nil, fault.Internal("failed to create comment")
@@ -180,6 +173,9 @@ func (cs *commentService) LikeComment(ctx context.Context, like *model.Like) (*m
 
 	like, err = cs.store.Likes().Insert(ctx, like)
 	if err != nil {
+		if datastore.IsConstraint(err) {
+			return nil, fault.Conflict("you can only like a comment once")
+		}
 		cs.logger.Error("failed liking comment", err)
 		return nil, fault.Internal("failed to like comment")
 	}
