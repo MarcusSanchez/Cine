@@ -145,7 +145,7 @@ func (mr *mediaRepository) filters(mediaFs []*model.MediaF) []predicate.Media {
 
 func (mr *mediaRepository) create(media *model.Media) *ent.MediaCreate {
 	return mr.client.Media.Create().
-		SetID(media.ID).
+		SetID(uuid.New()).
 		SetRef(media.Ref).
 		SetMediaType(Media.MediaType(media.MediaType)).
 		SetOverview(media.Overview).
