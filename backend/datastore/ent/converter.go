@@ -150,11 +150,17 @@ func (c converter) lists(lists []*ent.List) []*model.List {
 func (c converter) media(media *ent.Media) *model.Media {
 	if media != nil {
 		return &model.Media{
-			ID:        media.ID,
-			Ref:       media.Ref,
-			MediaType: model.MediaType(media.MediaType),
-			CreatedAt: media.CreatedAt,
-			UpdatedAt: media.UpdatedAt,
+			ID:           media.ID,
+			Ref:          media.Ref,
+			MediaType:    model.MediaType(media.MediaType),
+			Overview:     media.Overview,
+			BackdropPath: media.BackdropPath,
+			Language:     media.Language,
+			PosterPath:   media.PosterPath,
+			ReleaseDate:  media.ReleaseDate,
+			Title:        media.Title,
+			CreatedAt:    media.CreatedAt,
+			UpdatedAt:    media.UpdatedAt,
 		}
 	}
 	return nil
