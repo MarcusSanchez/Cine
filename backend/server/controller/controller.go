@@ -15,11 +15,17 @@ func NewControllers(
 	userController *UserController,
 	authController *AuthController,
 	listController *ListController,
+	reviewController *ReviewController,
+	commentController *CommentController,
+	mediaController *MediaController,
 ) Controllers {
 	return Controllers{
 		userController,
 		authController,
 		listController,
+		reviewController,
+		commentController,
+		mediaController,
 	}
 }
 
