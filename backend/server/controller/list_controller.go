@@ -32,7 +32,7 @@ func (lc *ListController) Routes(router fiber.Router, mw *middleware.Middleware)
 
 	list.Post("/", mw.SignedIn, mw.CSRF, lc.CreateList)
 	list.Post("/:listID/members/:userID", mw.SignedIn, mw.CSRF, mw.ParseUUID("listID", "userID"), lc.AddMemberToList)
-	list.Post("/:listID/movie/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("listID"), lc.AddMovieToList)
+	list.Post("/:listID/movie/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("listID"), mw.ParseInt("ref"), lc.AddMovieToList)
 	list.Post("/:listID/show/:ref", mw.SignedIn, mw.CSRF, mw.ParseUUID("listID"), mw.ParseInt("ref"), lc.AddShowToList)
 
 	list.Delete("/:listID", mw.SignedIn, mw.CSRF, mw.ParseUUID("listID"), lc.DeleteList)

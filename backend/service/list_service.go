@@ -250,6 +250,11 @@ func (ls *listService) GetPrivateDetailedList(ctx context.Context, memberID uuid
 		return nil, fault.Internal("error fetching list")
 	}
 
+	// obfuscate sensitive data
+	for _, user := range users {
+		user.Email = ""
+	}
+
 	return &DetailedList{
 		List:    list,
 		Members: users,
