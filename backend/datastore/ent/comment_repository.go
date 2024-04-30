@@ -3,6 +3,7 @@ package ent
 import (
 	"cine/datastore/ent/ent"
 	Comment "cine/datastore/ent/ent/comment"
+	Like "cine/datastore/ent/ent/like"
 	"cine/datastore/ent/ent/predicate"
 	"cine/entity/model"
 	"cine/repository"
@@ -102,8 +103,15 @@ func (cr *commentRepository) DeleteExec(ctx context.Context, commentFs ...*model
 }
 
 func (cr *commentRepository) AllAsDetailed(ctx context.Context, mediaID, userID uuid.UUID) ([]*model.DetailedComment, error) {
-	q := cr.client.Comment.Query().WithLikes().WithReplies().WithUser()
-	q = q.Where(Comment.MediaID(mediaID), Comment.Not(Comment.HasReplyingTo())) // top-level comments only
+	q := cr.client.Comment.Query()
+	q = q.Where(Comment.MediaID(mediaID), Comment.Not(Comment.HasReplyingTo())).
+		WithLikes(func(q *ent.LikeQuery) {
+			q.Select(Like.FieldUserID)
+		}).
+		WithReplies(func(q *ent.CommentQuery) {
+			q.Select(Comment.FieldID)
+		}).
+		WithUser()
 
 	comments, err := q.All(ctx)
 	if err != nil {
@@ -117,7 +125,13 @@ func (cr *commentRepository) AllRepliesAsDetailed(ctx context.Context, comment *
 	q := cr.client.Comment.Query()
 	q = q.Where(Comment.ID(comment.ID)).
 		QueryReplies().
-		WithUser().WithLikes().WithReplies()
+		WithLikes(func(q *ent.LikeQuery) {
+			q.Select(Like.FieldUserID)
+		}).
+		WithReplies(func(q *ent.CommentQuery) {
+			q.Select(Comment.FieldID)
+		}).
+		WithUser()
 
 	replies, err := q.All(ctx)
 	if err != nil {
