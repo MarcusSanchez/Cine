@@ -101,53 +101,30 @@ func (cr *commentRepository) DeleteExec(ctx context.Context, commentFs ...*model
 	return affected, c.error(err)
 }
 
-func (cr *commentRepository) AllWithReplyAndLikeCount(ctx context.Context, mediaID uuid.UUID) ([]*model.CommentWithRelationsCount, error) {
-	// TODO: Optimize this
-	q := cr.client.Comment.Query()
-	q = q.Where(Comment.MediaID(mediaID)).WithLikes().WithReplies()
+func (cr *commentRepository) AllAsDetailed(ctx context.Context, mediaID, userID uuid.UUID) ([]*model.DetailedComment, error) {
+	q := cr.client.Comment.Query().WithLikes().WithReplies().WithUser()
+	q = q.Where(Comment.MediaID(mediaID), Comment.Not(Comment.HasReplyingTo())) // top-level comments only
 
 	comments, err := q.All(ctx)
 	if err != nil {
 		return nil, c.error(err)
 	}
 
-	var commentsWithRelationsCount []*model.CommentWithRelationsCount
-	for _, comment := range comments {
-		commentsWithRelationsCount = append(
-			commentsWithRelationsCount, &model.CommentWithRelationsCount{
-				Comment:      c.comment(comment),
-				RepliesCount: len(comment.Edges.Replies),
-				LikesCount:   len(comment.Edges.Likes),
-			},
-		)
-	}
-	return commentsWithRelationsCount, nil
+	return cr.detailedComments(comments, userID), nil
 }
 
-func (cr *commentRepository) AllRepliesWithReplyAndLikeCount(ctx context.Context, comment *model.Comment) ([]*model.CommentWithRelationsCount, error) {
-	// TODO: Optimize this
+func (cr *commentRepository) AllRepliesAsDetailed(ctx context.Context, comment *model.Comment, userID uuid.UUID) ([]*model.DetailedComment, error) {
 	q := cr.client.Comment.Query()
 	q = q.Where(Comment.ID(comment.ID)).
 		QueryReplies().
-		WithLikes().
-		WithReplies()
+		WithUser().WithLikes().WithReplies()
 
 	replies, err := q.All(ctx)
 	if err != nil {
 		return nil, c.error(err)
 	}
 
-	var repliesWithRelationsCount []*model.CommentWithRelationsCount
-	for _, reply := range replies {
-		repliesWithRelationsCount = append(
-			repliesWithRelationsCount, &model.CommentWithRelationsCount{
-				Comment:      c.comment(reply),
-				RepliesCount: len(reply.Edges.Replies),
-				LikesCount:   len(reply.Edges.Likes),
-			},
-		)
-	}
-	return repliesWithRelationsCount, nil
+	return cr.detailedComments(replies, userID), nil
 }
 
 func (cr *commentRepository) filters(commentFs []*model.CommentF) []predicate.Comment {
@@ -198,4 +175,29 @@ func (cr *commentRepository) createBulk(comments []*model.Comment) *ent.CommentC
 		builders = append(builders, cr.create(comment))
 	}
 	return cr.client.Comment.CreateBulk(builders...)
+}
+
+func (cr *commentRepository) detailedComments(comments []*ent.Comment, userID uuid.UUID) []*model.DetailedComment {
+	detailedComments := make([]*model.DetailedComment, 0, len(comments))
+	for _, comment := range comments {
+		detailedComments = append(detailedComments, &model.DetailedComment{
+			Comment:      c.comment(comment),
+			User:         c.user(comment.Edges.User),
+			RepliesCount: len(comment.Edges.Replies),
+			LikesCount:   len(comment.Edges.Likes),
+			LikedByUser:  cr.likedByUser(comment, userID),
+		})
+	}
+	return detailedComments
+}
+
+func (cr *commentRepository) likedByUser(comment *ent.Comment, userID uuid.UUID) bool {
+	if userID != uuid.Nil {
+		for _, like := range comment.Edges.Likes {
+			if like.UserID == userID {
+				return true
+			}
+		}
+	}
+	return false
 }

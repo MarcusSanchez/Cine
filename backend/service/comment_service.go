@@ -13,8 +13,8 @@ type CommentService interface {
 	CreateComment(ctx context.Context, ref int, mediaType model.MediaType, comment *model.Comment) (*model.Comment, error)
 	UpdateComment(ctx context.Context, userID, commentID uuid.UUID, content string) (*model.Comment, error)
 	DeleteComment(ctx context.Context, userID, commentID uuid.UUID) error
-	GetComments(ctx context.Context, ref int, mediaType model.MediaType) ([]*model.CommentWithRelationsCount, error)
-	GetCommentReplies(ctx context.Context, commentID uuid.UUID) ([]*model.CommentWithRelationsCount, error)
+	GetComments(ctx context.Context, ref int, mediaType model.MediaType, userID uuid.UUID) ([]*model.DetailedComment, error)
+	GetCommentReplies(ctx context.Context, commentID, userID uuid.UUID) ([]*model.DetailedComment, error)
 	LikeComment(ctx context.Context, like *model.Like) (*model.Like, error)
 	UnlikeComment(ctx context.Context, userID, likeID uuid.UUID) error
 }
@@ -116,7 +116,7 @@ func (cs *commentService) DeleteComment(ctx context.Context, userID, commentID u
 	return nil
 }
 
-func (cs *commentService) GetComments(ctx context.Context, ref int, mediaType model.MediaType) ([]*model.CommentWithRelationsCount, error) {
+func (cs *commentService) GetComments(ctx context.Context, ref int, mediaType model.MediaType, userID uuid.UUID) ([]*model.DetailedComment, error) {
 	media, err := cs.media.GetMedia(ctx, ref, mediaType)
 	if e, ok := fault.As(err); ok {
 		if e.Code == fault.CodeNotFound {
@@ -126,7 +126,7 @@ func (cs *commentService) GetComments(ctx context.Context, ref int, mediaType mo
 		return nil, fault.Internal("failed to get comments")
 	}
 
-	comments, err := cs.store.Comments().AllWithReplyAndLikeCount(ctx, media.ID)
+	comments, err := cs.store.Comments().AllAsDetailed(ctx, media.ID, userID)
 	if err != nil {
 		cs.logger.Error("failed getting comments", err)
 		return nil, fault.Internal("failed to get comments")
@@ -135,7 +135,7 @@ func (cs *commentService) GetComments(ctx context.Context, ref int, mediaType mo
 	return comments, nil
 }
 
-func (cs *commentService) GetCommentReplies(ctx context.Context, commentID uuid.UUID) ([]*model.CommentWithRelationsCount, error) {
+func (cs *commentService) GetCommentReplies(ctx context.Context, commentID, userID uuid.UUID) ([]*model.DetailedComment, error) {
 	comment, err := cs.store.Comments().One(ctx, &model.CommentF{ID: &commentID})
 	if err != nil {
 		if datastore.IsNotFound(err) {
@@ -145,7 +145,7 @@ func (cs *commentService) GetCommentReplies(ctx context.Context, commentID uuid.
 		return nil, fault.Internal("failed to get comment replies")
 	}
 
-	comments, err := cs.store.Comments().AllRepliesWithReplyAndLikeCount(ctx, comment)
+	comments, err := cs.store.Comments().AllRepliesAsDetailed(ctx, comment, userID)
 	if err != nil {
 		cs.logger.Error("failed getting comment replies", err)
 		return nil, fault.Internal("failed to get comment replies")

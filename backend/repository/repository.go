@@ -62,6 +62,6 @@ type ListRepository interface {
 type CommentRepository interface {
 	Repository[*model.Comment, *model.CommentF, *model.CommentU]
 
-	AllWithReplyAndLikeCount(ctx context.Context, mediaID uuid.UUID) ([]*model.CommentWithRelationsCount, error)
-	AllRepliesWithReplyAndLikeCount(ctx context.Context, comment *model.Comment) ([]*model.CommentWithRelationsCount, error)
+	AllAsDetailed(ctx context.Context, mediaID uuid.UUID, userID uuid.UUID) ([]*model.DetailedComment, error)
+	AllRepliesAsDetailed(ctx context.Context, comment *model.Comment, userID uuid.UUID) ([]*model.DetailedComment, error)
 }

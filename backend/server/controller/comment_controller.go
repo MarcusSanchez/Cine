@@ -123,10 +123,11 @@ func (cc *CommentController) DeleteComment(c *fiber.Ctx) error {
 
 // GetComments [GET] /api/comments/:mediaType/:ref
 func (cc *CommentController) GetComments(c *fiber.Ctx) error {
+	session := c.Locals("session").(*model.Session)
 	ref := c.Locals("ref").(int)
 	mediaType := c.Locals("mediaType").(model.MediaType)
 
-	comments, err := cc.comment.GetComments(c.Context(), ref, mediaType)
+	comments, err := cc.comment.GetComments(c.Context(), ref, mediaType, session.UserID)
 	if err != nil {
 		return err
 	}
@@ -137,8 +138,9 @@ func (cc *CommentController) GetComments(c *fiber.Ctx) error {
 // GetCommentReplies [GET] /api/comments/:commentID/replies
 func (cc *CommentController) GetCommentReplies(c *fiber.Ctx) error {
 	commentID := c.Locals("commentID").(uuid.UUID)
+	session := c.Locals("session").(*model.Session)
 
-	replies, err := cc.comment.GetCommentReplies(c.Context(), commentID)
+	replies, err := cc.comment.GetCommentReplies(c.Context(), commentID, session.UserID)
 	if err != nil {
 		return err
 	}

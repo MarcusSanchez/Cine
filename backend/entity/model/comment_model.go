@@ -29,8 +29,10 @@ type CommentF struct {
 	UpdatedAt    *time.Time
 }
 
-type CommentWithRelationsCount struct {
+type DetailedComment struct {
 	Comment      *Comment `json:"comment"`
+	User         *User    `json:"user"`
 	RepliesCount int      `json:"replies_count"`
 	LikesCount   int      `json:"likes_count"`
+	LikedByUser  bool     `json:"liked_by_user"`
 }
