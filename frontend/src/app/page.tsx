@@ -1,5 +1,8 @@
 export default function Home() {
-  return (
-    <h1>Hello, World!</h1>
-  );
+  return (<>
+  <div className="
+    container w-[400px] h-[400px]
+    bg-red-500 md:bg-blue-500
+  " />
+  </>);
 }

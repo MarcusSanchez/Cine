@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
-import { Inter as FontSans } from "next/font/google";
+import { Roboto } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
 
-const fontSans = FontSans({
+import "@/env/environment";
+import API from "@/api/api";
+import React from "react";
+import { App } from "@/app/App";
+
+API.url = process.env.API_URL;
+
+const roboto = Roboto({
+  weight: ["500"],
   subsets: ["latin"],
-  variable: "--font-sans"
+  display: "swap",
+  variable: "--font-roboto",
 });
 
 export const metadata: Metadata = {
@@ -19,14 +27,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={cn(
-          "min-h-screen bg-background font-sans antialiased",
-          fontSans.variable
-        )}
-      >
-        {children}
+    <html lang="en" className={roboto.className}>
+      <body>
+        <App>{children}</App>
       </body>
     </html>
   );

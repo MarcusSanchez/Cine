@@ -20,9 +20,16 @@ const config = {
     },
     extend: {
       fontFamily: {
+        roboto: ["var(--font-roboto)", ...fontFamily.sans],
         sans: ["var(--font-sans)", ...fontFamily.sans],
       },
       colors: {
+        "brand-red": "#e4252c",
+        "brand-yellow": "#fcb040",
+        "brand-blue": "#00c9c3",
+        "brand-dark": "#1b1b1f",
+        "brand-darker": "#161618",
+        "brand-light": "#dfdfd7",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
