@@ -14,7 +14,7 @@ import (
 
 type AuthService interface {
 	Register(ctx context.Context, input *RegisterInput) (*model.User, *model.Session, error)
-	Login(ctx context.Context, username, password string) (*model.Session, error)
+	Login(ctx context.Context, username, password string) (*model.User, *model.Session, error)
 	Logout(ctx context.Context, session *model.Session) error
 	Authenticate(ctx context.Context, session *model.Session) (*model.User, *model.Session, error)
 	Session(ctx context.Context, access uuid.UUID) (*model.Session, error)
@@ -102,22 +102,22 @@ func (as authService) Register(ctx context.Context, input *RegisterInput) (*mode
 	return user, session, nil
 }
 
-func (as authService) Login(ctx context.Context, username, password string) (*model.Session, error) {
+func (as authService) Login(ctx context.Context, username, password string) (*model.User, *model.Session, error) {
 	user, err := as.store.Users().One(ctx, &model.UserF{Username: &username})
 	if err != nil {
 		if datastore.IsNotFound(err) {
-			return nil, fault.NotFound("user not found")
+			return nil, nil, fault.NotFound("user not found")
 		}
 		as.logger.Error("user retrieval failed", err)
-		return nil, fault.Internal("error logging in")
+		return nil, nil, fault.Internal("error logging in")
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return nil, fault.Unauthorized("mismatch username and password")
+			return nil, nil, fault.Unauthorized("mismatch username and password")
 		}
 		as.logger.Error("password comparison failed", err)
-		return nil, fault.Internal("error logging in")
+		return nil, nil, fault.Internal("error logging in")
 	}
 
 	session, err := as.store.Sessions().Insert(
@@ -130,10 +130,10 @@ func (as authService) Login(ctx context.Context, username, password string) (*mo
 	)
 	if err != nil {
 		as.logger.Error("session creation failed", err)
-		return nil, fault.Internal("error logging in")
+		return nil, nil, fault.Internal("error logging in")
 	}
 
-	return session, nil
+	return user, session, nil
 }
 
 func (as authService) Logout(ctx context.Context, session *model.Session) error {

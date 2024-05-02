@@ -91,12 +91,12 @@ func (ac *AuthController) Login(c *fiber.Ctx) error {
 		return fault.BadRequest(errs.One())
 	}
 
-	session, err := ac.auth.Login(c.Context(), p.Username, p.Password)
+	user, session, err := ac.auth.Login(c.Context(), p.Username, p.Password)
 	if err != nil {
 		return err
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{"session": session})
+	return c.Status(http.StatusOK).JSON(fiber.Map{"session": session, "user": user})
 }
 
 // Logout [DELETE] /api/logout
