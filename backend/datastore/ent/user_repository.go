@@ -2,7 +2,11 @@ package ent
 
 import (
 	"cine/datastore/ent/ent"
+	Comment "cine/datastore/ent/ent/comment"
+	Like "cine/datastore/ent/ent/like"
+	List "cine/datastore/ent/ent/list"
 	"cine/datastore/ent/ent/predicate"
+	Review "cine/datastore/ent/ent/review"
 	User "cine/datastore/ent/ent/user"
 	"cine/entity/model"
 	"cine/repository"
@@ -109,39 +113,18 @@ func (ur *userRepository) DeleteExec(ctx context.Context, userFs ...*model.UserF
 	return affected, c.error(err)
 }
 
-func (ur *userRepository) OneFriend(ctx context.Context, user *model.User, friendID uuid.UUID) (*model.User, error) {
-	q := ur.client.User.Query().
-		Where(User.ID(user.ID)).
-		QueryFriends().
-		Where(User.ID(friendID))
-
-	friend, err := q.First(ctx)
-	return c.user(friend), c.error(err)
-}
-
-func (ur *userRepository) AllFriends(ctx context.Context, user *model.User) ([]*model.User, error) {
+func (ur *userRepository) OneDetailed(ctx context.Context, id, userID uuid.UUID) (*model.DetailedUser, error) {
 	q := ur.client.User.Query()
-	q = q.Where(User.ID(user.ID)).
-		QueryFriends()
+	q = q.Where(User.ID(id)).
+		WithComments(func(q *ent.CommentQuery) { q.Select(Comment.FieldID) }).
+		WithFollowers(func(q *ent.UserQuery) { q.Select(User.FieldID) }).
+		WithFollowing(func(q *ent.UserQuery) { q.Select(User.FieldID) }).
+		WithLikes(func(q *ent.LikeQuery) { q.Select(Like.FieldID) }).
+		WithLists(func(q *ent.ListQuery) { q.Select(List.FieldID) }).
+		WithReviews(func(q *ent.ReviewQuery) { q.Select(Review.FieldID) })
 
-	friends, err := q.All(ctx)
-	return c.users(friends), c.error(err)
-}
-
-func (ur *userRepository) AddFriend(ctx context.Context, user *model.User, friendID uuid.UUID) error {
-	q := ur.client.User.UpdateOneID(user.ID)
-	q = q.AddFriendIDs(friendID)
-
-	_, err := q.Save(ctx)
-	return c.error(err)
-}
-
-func (ur *userRepository) RemoveFriend(ctx context.Context, user *model.User, friendID uuid.UUID) error {
-	q := ur.client.User.UpdateOneID(user.ID)
-	q = q.RemoveFriendIDs(friendID)
-
-	_, err := q.Save(ctx)
-	return c.error(err)
+	user, err := q.First(ctx)
+	return ur.detailedUser(user, userID), c.error(err)
 }
 
 func (ur *userRepository) OneFollowed(ctx context.Context, user *model.User, followedID uuid.UUID) (*model.User, error) {
@@ -251,4 +234,28 @@ func (ur *userRepository) createBulk(users []*model.User) *ent.UserCreateBulk {
 		builders = append(builders, ur.create(user))
 	}
 	return ur.client.User.CreateBulk(builders...)
+}
+
+func (ur *userRepository) detailedUser(user *ent.User, userID uuid.UUID) *model.DetailedUser {
+	return &model.DetailedUser{
+		User:           c.user(user),
+		FollowingCount: len(user.Edges.Following),
+		FollowersCount: len(user.Edges.Followers),
+		LikesCount:     len(user.Edges.Likes),
+		CommentsCount:  len(user.Edges.Comments),
+		ReviewsCount:   len(user.Edges.Reviews),
+		ListsCount:     len(user.Edges.Lists),
+		Followed:       ur.followed(user.Edges.Followers, userID),
+	}
+}
+
+func (ur *userRepository) followed(followers []*ent.User, userID uuid.UUID) bool {
+	if userID != uuid.Nil {
+		for _, follower := range followers {
+			if follower.ID == userID {
+				return true
+			}
+		}
+	}
+	return false
 }

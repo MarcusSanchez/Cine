@@ -1,8 +1,7 @@
 import { z } from "zod";
 import dotenv from "dotenv";
-import * as path from "path";
 
-dotenv.config({ path: path.resolve(__dirname, "../../../src/env/.env") });
+dotenv.config({ path: process.cwd() + "\\src\\env\\.env" });
 
 const variables = z.object({
   API_URL: z.string().url(),

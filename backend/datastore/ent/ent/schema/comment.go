@@ -17,7 +17,7 @@ type Comment struct {
 func (Comment) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Unique().Immutable(),
-		field.UUID("user_id", uuid.UUID{}).Nillable().Immutable(),
+		field.UUID("user_id", uuid.UUID{}).Immutable(),
 		field.UUID("media_id", uuid.UUID{}).Immutable(),
 		field.UUID("replying_to_id", uuid.UUID{}).Nillable().Optional().Immutable(),
 		field.String("content"),
@@ -34,8 +34,8 @@ func (Comment) Edges() []ent.Edge {
 		// O2M Comment <-- Like
 		edge.To("likes", Like.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 		// O2M Comment <-- Comment (Replies)
-		edge.To("replies", Comment.Type).From("replying_to").Field("replying_to_id").
-			Immutable().Unique().Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("replies", Comment.Type).Annotations(entsql.OnDelete(entsql.Cascade)).
+			From("replying_to").Field("replying_to_id").Immutable().Unique(),
 		// O2M Media <-- Comment
 		edge.From("media", Media.Type).Ref("comments").Field("media_id").Unique().Required().Immutable(),
 	}

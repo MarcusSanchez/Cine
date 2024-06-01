@@ -31,7 +31,6 @@ type DetailedGenre struct {
 }
 
 type DetailedMovie struct {
-	Adult            bool            `json:"adult"`
 	BackdropPath     *string         `json:"backdrop_path,optional"`
 	Budget           int             `json:"budget"`
 	Genres           []DetailedGenre `json:"genres"`
@@ -111,3 +110,129 @@ type DetailedShow struct {
 	VoteAverage      float64         `json:"vote_average"`
 	VoteCount        int             `json:"vote_count"`
 }
+
+type MovieCredits struct {
+	ID   int         `json:"id"`
+	Cast []MovieCast `json:"cast"`
+	Crew []MovieCrew `json:"crew"`
+}
+
+type MovieCast struct {
+	Adult              bool    `json:"adult"`
+	Gender             int     `json:"gender"`
+	ID                 int     `json:"id"`
+	KnownForDepartment string  `json:"known_for_department"`
+	Name               string  `json:"name"`
+	OriginalName       string  `json:"original_name"`
+	Popularity         float64 `json:"popularity"`
+	ProfilePath        string  `json:"profile_path"`
+	CastID             int     `json:"cast_id"`
+	Character          string  `json:"character"`
+	CreditID           string  `json:"credit_id"`
+	Order              int     `json:"order"`
+}
+
+type MovieCrew struct {
+	Adult              bool    `json:"adult"`
+	Gender             int     `json:"gender"`
+	ID                 int     `json:"id"`
+	KnownForDepartment string  `json:"known_for_department"`
+	Name               string  `json:"name"`
+	OriginalName       string  `json:"original_name"`
+	Popularity         float64 `json:"popularity"`
+	ProfilePath        string  `json:"profile_path"`
+	CreditID           string  `json:"credit_id"`
+	Department         string  `json:"department"`
+	Job                string  `json:"job"`
+}
+
+type ShowCredits struct {
+	ID   int        `json:"id"`
+	Cast []ShowCast `json:"cast"`
+	Crew []ShowCrew `json:"crew"`
+}
+
+type ShowCast struct {
+	Adult              bool       `json:"adult"`
+	Gender             int        `json:"gender"`
+	ID                 int        `json:"id"`
+	KnownForDepartment string     `json:"known_for_department"`
+	Name               string     `json:"name"`
+	OriginalName       string     `json:"original_name"`
+	Popularity         float64    `json:"popularity"`
+	ProfilePath        string     `json:"profile_path"`
+	Roles              []ShowRole `json:"roles"`
+	TotalEpisodeCount  int        `json:"total_episode_count"`
+	Order              int        `json:"order"`
+}
+
+type ShowRole struct {
+	CreditID     string `json:"credit_id"`
+	Character    string `json:"character"`
+	EpisodeCount int    `json:"episode_count"`
+}
+
+type ShowCrew struct {
+	Adult              bool      `json:"adult"`
+	Gender             int       `json:"gender"`
+	ID                 int       `json:"id"`
+	KnownForDepartment string    `json:"known_for_department"`
+	Name               string    `json:"name"`
+	OriginalName       string    `json:"original_name"`
+	Popularity         float64   `json:"popularity"`
+	ProfilePath        *string   `json:"profile_path"`
+	Jobs               []ShowJob `json:"jobs"`
+	Department         string    `json:"department"`
+	TotalEpisodeCount  int       `json:"total_episode_count"`
+}
+
+type ShowJob struct {
+	CreditID     string `json:"credit_id"`
+	Job          string `json:"job"`
+	EpisodeCount int    `json:"episode_count"`
+}
+
+type DetailedSeason struct {
+	ID           string    `json:"_id"`
+	AirDate      string    `json:"air_date"`
+	Episodes     []Episode `json:"episodes"`
+	Name         string    `json:"name"`
+	Overview     string    `json:"overview"`
+	PosterPath   string    `json:"poster_path"`
+	SeasonNumber int       `json:"season_number"`
+	VoteAverage  float64   `json:"vote_average"`
+}
+
+type Episode struct {
+	AirDate        string  `json:"air_date"`
+	EpisodeNumber  int     `json:"episode_number"`
+	EpisodeType    string  `json:"episode_type"`
+	ID             int     `json:"id"`
+	Name           string  `json:"name"`
+	Overview       string  `json:"overview"`
+	ProductionCode string  `json:"production_code"`
+	Runtime        int     `json:"runtime"`
+	SeasonNumber   int     `json:"season_number"`
+	ShowID         int     `json:"show_id"`
+	StillPath      string  `json:"still_path"`
+	VoteAverage    float64 `json:"vote_average"`
+	VoteCount      int     `json:"vote_count"`
+}
+
+type MovieList string
+
+const (
+	MovieListNowPlaying MovieList = "nowPlaying"
+	MovieListPopular    MovieList = "popular"
+	MovieListTopRated   MovieList = "topRated"
+	MovieListUpcoming   MovieList = "upcoming"
+)
+
+type ShowList string
+
+const (
+	ShowListAiringToday ShowList = "airingToday"
+	ShowListPopular     ShowList = "popular"
+	ShowListTopRated    ShowList = "topRated"
+	ShowListOnTheAir    ShowList = "onTheAir"
+)

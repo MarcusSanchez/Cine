@@ -16,7 +16,7 @@ type CommentService interface {
 	GetComments(ctx context.Context, ref int, mediaType model.MediaType, userID uuid.UUID) ([]*model.DetailedComment, error)
 	GetCommentReplies(ctx context.Context, commentID, userID uuid.UUID) ([]*model.DetailedComment, error)
 	LikeComment(ctx context.Context, like *model.Like) (*model.Like, error)
-	UnlikeComment(ctx context.Context, userID, likeID uuid.UUID) error
+	UnlikeComment(ctx context.Context, userID, commentID uuid.UUID) error
 }
 
 type commentService struct {
@@ -34,7 +34,7 @@ func NewCommentService(store datastore.Store, logger logger.Logger, media MediaS
 }
 
 func (cs *commentService) CreateComment(ctx context.Context, ref int, mediaType model.MediaType, comment *model.Comment) (*model.Comment, error) {
-	exists, err := cs.store.Users().Exists(ctx, &model.UserF{ID: comment.UserID})
+	exists, err := cs.store.Users().Exists(ctx, &model.UserF{ID: &comment.UserID})
 	if err != nil {
 		cs.logger.Error("failed checking user existence", err)
 		return nil, fault.Internal("failed to create comment")
@@ -81,7 +81,7 @@ func (cs *commentService) UpdateComment(ctx context.Context, userID, commentID u
 		return nil, fault.Internal("failed to update comment")
 	}
 
-	if comment.UserID == nil || *comment.UserID != userID {
+	if comment.UserID != userID {
 		return nil, fault.Forbidden("you are not allowed to update this comment")
 	}
 
@@ -104,7 +104,7 @@ func (cs *commentService) DeleteComment(ctx context.Context, userID, commentID u
 		return fault.Internal("failed to delete comment")
 	}
 
-	if comment.UserID == nil || *comment.UserID != userID {
+	if comment.UserID != userID {
 		return fault.Forbidden("you are not allowed to delete this comment")
 	}
 
@@ -183,8 +183,8 @@ func (cs *commentService) LikeComment(ctx context.Context, like *model.Like) (*m
 	return like, err
 }
 
-func (cs *commentService) UnlikeComment(ctx context.Context, userID, likeID uuid.UUID) error {
-	like, err := cs.store.Likes().One(ctx, &model.LikeF{ID: &likeID})
+func (cs *commentService) UnlikeComment(ctx context.Context, userID, commentID uuid.UUID) error {
+	like, err := cs.store.Likes().One(ctx, &model.LikeF{UserID: &userID, CommentID: &commentID})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return fault.NotFound("like not found")
@@ -193,11 +193,7 @@ func (cs *commentService) UnlikeComment(ctx context.Context, userID, likeID uuid
 		return fault.Internal("failed to unlike comment")
 	}
 
-	if like.UserID != userID {
-		return fault.Forbidden("you are not allowed to unlike this comment")
-	}
-
-	if err = cs.store.Likes().Delete(ctx, likeID); err != nil {
+	if err = cs.store.Likes().Delete(ctx, like.ID); err != nil {
 		cs.logger.Error("failed unliking comment", err)
 		return fault.Internal("failed to unlike comment")
 	}

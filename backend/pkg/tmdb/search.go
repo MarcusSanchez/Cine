@@ -3,15 +3,12 @@ package tmdb
 import (
 	"fmt"
 	"github.com/MarcusSanchez/go-parse"
-	"net/http"
 	"strconv"
 )
 
 type searchAPI interface {
 	SearchMovies(query string, filter ...SearchMovieFilter) ([]Movie, error)
 	SearchShows(query string, filter ...SearchShowFilter) ([]Show, error)
-	SearchMovieByRef(ref int) (*DetailedMovie, error)
-	SearchShowByRef(ref int) (*DetailedShow, error)
 }
 
 type SearchMovieFilter struct {
@@ -132,72 +129,4 @@ func (a *api) SearchShows(query string, filters ...SearchShowFilter) ([]Show, er
 	}
 
 	return r.Shows, nil
-}
-
-func (a *api) SearchMovieByRef(ref int) (*DetailedMovie, error) {
-	endpoint := "/movie/" + strconv.Itoa(ref)
-
-	resp, err := a.client.R().
-		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+a.readToken).
-		Get(url + endpoint)
-	if err != nil {
-		a.logger.Error("failed to fetch movie by ref: "+strconv.Itoa(ref), err)
-		return nil, ErrorInternal("failed to fetch movie by ref: " + strconv.Itoa(ref))
-	}
-
-	if !resp.IsSuccess() {
-		switch resp.StatusCode() {
-		case http.StatusNotFound:
-			return nil, ErrorNotFound("movie by ref: " + strconv.Itoa(ref))
-		default:
-			a.logger.Warn(
-				"movie by ref '"+strconv.Itoa(ref)+"' response was not successful",
-				fmt.Sprintf("status: %d | body: %s", resp.StatusCode(), prettyJSON(resp.Body())),
-			)
-			return nil, ErrorInternal("failed to fetch movie by ref: " + strconv.Itoa(ref))
-		}
-	}
-
-	movie, err := parse.JSON[DetailedMovie](resp.Body())
-	if err != nil {
-		a.logger.Error("failed to parse movie by ref: "+strconv.Itoa(ref), err)
-		return nil, ErrorInternal("failed to fetch movie by ref: " + strconv.Itoa(ref))
-	}
-
-	return movie, nil
-}
-
-func (a *api) SearchShowByRef(ref int) (*DetailedShow, error) {
-	endpoint := "/tv/" + strconv.Itoa(ref)
-
-	resp, err := a.client.R().
-		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+a.readToken).
-		Get(url + endpoint)
-	if err != nil {
-		a.logger.Error("failed to fetch show by ref: "+strconv.Itoa(ref), err)
-		return nil, ErrorInternal("failed to fetch show by ref: " + strconv.Itoa(ref))
-	}
-
-	if !resp.IsSuccess() {
-		switch resp.StatusCode() {
-		case http.StatusNotFound:
-			return nil, ErrorNotFound("show by ref: " + strconv.Itoa(ref))
-		default:
-			a.logger.Warn(
-				"show by ref '"+strconv.Itoa(ref)+"' response was not successful",
-				fmt.Sprintf("status: %d | body: %s", resp.StatusCode(), prettyJSON(resp.Body())),
-			)
-			return nil, ErrorInternal("failed to fetch show by ref: " + strconv.Itoa(ref))
-		}
-	}
-
-	show, err := parse.JSON[DetailedShow](resp.Body())
-	if err != nil {
-		a.logger.Error("failed to parse show by ref: "+strconv.Itoa(ref), err)
-		return nil, ErrorInternal("failed to fetch show by ref: " + strconv.Itoa(ref))
-	}
-
-	return show, nil
 }

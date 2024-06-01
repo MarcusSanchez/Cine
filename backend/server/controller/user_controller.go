@@ -9,6 +9,7 @@ import (
 	"github.com/MarcusSanchez/go-parse"
 	"github.com/MarcusSanchez/go-z"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"net/http"
 )
 
@@ -22,8 +23,61 @@ func NewUserController(userService service.UserService) *UserController {
 
 func (uc *UserController) Routes(router fiber.Router, mw *middleware.Middleware) {
 	users := router.Group("/users")
+	users.Get("/me", mw.SignedIn, uc.GetMe)
+	users.Get("/:userID", mw.SignedIn, mw.ParseUUID("userID"), uc.GetUser)
+	users.Get("/detailed/me", mw.SignedIn, uc.GetDetailedMe)
+	users.Get("/detailed/:userID", mw.SignedIn, mw.ParseUUID("userID"), uc.GetDetailedUser)
 	users.Put("/", mw.SignedIn, mw.CSRF, uc.UpdateUser)
 	users.Delete("/", mw.SignedIn, mw.CSRF, uc.DeleteUser)
+}
+
+// GetMe [GET] /api/users/me
+func (uc *UserController) GetMe(c *fiber.Ctx) error {
+	session := c.Locals("session").(*model.Session)
+
+	user, err := uc.user.GetUser(c.Context(), session.UserID)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{"user": user})
+}
+
+// GetUser [GET] /api/users/:userID
+func (uc *UserController) GetUser(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uuid.UUID)
+
+	user, err := uc.user.GetUser(c.Context(), userID)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{"user": user})
+}
+
+// GetDetailedMe [GET] /api/users/detailed/me
+func (uc *UserController) GetDetailedMe(c *fiber.Ctx) error {
+	session := c.Locals("session").(*model.Session)
+
+	user, err := uc.user.GetDetailedUser(c.Context(), session.UserID, uuid.Nil)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{"detailed_user": user})
+}
+
+// GetDetailedUser [GET] /api/users/detailed/:userID
+func (uc *UserController) GetDetailedUser(c *fiber.Ctx) error {
+	session := c.Locals("session").(*model.Session)
+	userID := c.Locals("userID").(uuid.UUID)
+
+	user, err := uc.user.GetDetailedUser(c.Context(), userID, session.UserID)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{"detailed_user": user})
 }
 
 // UpdateUser [PUT] /api/users

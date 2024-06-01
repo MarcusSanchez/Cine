@@ -29,12 +29,12 @@ func (rc *ReviewController) Routes(router fiber.Router, mw *middleware.Middlewar
 	review.Get("/:mediaType/:ref", mw.SignedIn, mw.ParseMediaType("mediaType"), mw.ParseInt("ref"), rc.GetAllReviews)
 }
 
-// CreateReview [POST] /api/review/:mediaType/:ref
+// CreateReview [POST] /api/reviews/:mediaType/:ref
 func (rc *ReviewController) CreateReview(c *fiber.Ctx) error {
 
 	type Payload struct {
-		Content string  `json:"content" z:"content"`
-		Rating  float64 `json:"rating"  z:"rating"`
+		Content string `json:"content" z:"content"`
+		Rating  int    `json:"rating"  z:"rating"`
 	}
 
 	p, err := parse.JSON[Payload](c.Body())
@@ -73,12 +73,12 @@ func (rc *ReviewController) CreateReview(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(fiber.Map{"review": review})
 }
 
-// UpdateReview [PUT] /api/review/:reviewID
+// UpdateReview [PUT] /api/reviews/:reviewID
 func (rc *ReviewController) UpdateReview(c *fiber.Ctx) error {
 
 	type Payload struct {
-		Content *string  `json:"content,optional" z:"content"`
-		Rating  *float64 `json:"rating,optional"  z:"rating"`
+		Content *string `json:"content,optional" z:"content"`
+		Rating  *int    `json:"rating,optional"  z:"rating"`
 	}
 
 	p, err := parse.JSON[Payload](c.Body())
@@ -110,7 +110,7 @@ func (rc *ReviewController) UpdateReview(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"review": review})
 }
 
-// DeleteReview [DELETE] /api/review/:reviewID
+// DeleteReview [DELETE] /api/reviews/:reviewID
 func (rc *ReviewController) DeleteReview(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
 	reviewID := c.Locals("reviewID").(uuid.UUID)
@@ -123,7 +123,7 @@ func (rc *ReviewController) DeleteReview(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusNoContent)
 }
 
-// GetAllReviews [GET] /api/review/:mediaType/:ref
+// GetAllReviews [GET] /api/reviews/:mediaType/:ref
 func (rc *ReviewController) GetAllReviews(c *fiber.Ctx) error {
 	ref := c.Locals("ref").(int)
 	mediaType := c.Locals("mediaType").(model.MediaType)
@@ -133,5 +133,5 @@ func (rc *ReviewController) GetAllReviews(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{"reviews": reviews})
+	return c.Status(http.StatusOK).JSON(fiber.Map{"detailed_reviews": reviews})
 }

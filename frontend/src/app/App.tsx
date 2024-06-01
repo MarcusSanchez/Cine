@@ -3,12 +3,13 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useUserStore } from "@/app/state";
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import authenticateAction from "@/actions/authenticate-action";
 import { getCookie } from "@/lib/utils";
 
 export function App({ children }: Readonly<{ children: ReactNode }>) {
   const { setUser } = useUserStore();
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const authenticate = async () => {
@@ -24,13 +25,13 @@ export function App({ children }: Readonly<{ children: ReactNode }>) {
       setUser({ ...result.data.user, loggedIn: true, csrf: csrf });
     }
 
-    authenticate();
+    authenticate().then(() => setLoaded(true));
   }, [])
 
   return (
     <>
       <Navbar />
-      {children}
+      {loaded && children}
       <Footer />
     </>
   );

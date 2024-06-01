@@ -20,7 +20,7 @@ func (Review) Fields() []ent.Field {
 		field.UUID("user_id", uuid.UUID{}).Immutable(),
 		field.UUID("media_id", uuid.UUID{}).Immutable(),
 		field.String("content"),
-		field.Float("rating"),
+		field.Int("rating"),
 		field.Time("created_at").Immutable(),
 		field.Time("updated_at").Nillable().Optional(),
 	}

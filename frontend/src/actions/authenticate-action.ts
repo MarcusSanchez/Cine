@@ -3,6 +3,7 @@
 import API from "@/api/api";
 import { cookies } from "next/headers";
 import { maxAge } from "@/lib/utils";
+import { User } from "@/models/models";
 
 type Result = {
   success: true, data: { user: User }

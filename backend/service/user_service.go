@@ -11,6 +11,8 @@ import (
 )
 
 type UserService interface {
+	GetUser(ctx context.Context, id uuid.UUID) (*model.User, error)
+	GetDetailedUser(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*model.DetailedUser, error)
 	UpdateUser(ctx context.Context, id uuid.UUID, userU *model.UserU) (*model.User, error)
 	DeleteUser(ctx context.Context, id uuid.UUID) error
 }
@@ -25,6 +27,32 @@ func NewUserService(store datastore.Store, logger logger.Logger) UserService {
 		store:  store,
 		logger: logger,
 	}
+}
+
+func (us userService) GetUser(ctx context.Context, id uuid.UUID) (*model.User, error) {
+	user, err := us.store.Users().One(ctx, &model.UserF{ID: &id})
+	if err != nil {
+		if datastore.IsNotFound(err) {
+			return nil, fault.NotFound("user not found")
+		}
+		us.logger.Error("user retrieval failed", err)
+		return nil, fault.Internal("error retrieving user")
+	}
+
+	return user, nil
+}
+
+func (us userService) GetDetailedUser(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*model.DetailedUser, error) {
+	user, err := us.store.Users().OneDetailed(ctx, id, userID)
+	if err != nil {
+		if datastore.IsNotFound(err) {
+			return nil, fault.NotFound("user not found")
+		}
+		us.logger.Error("user retrieval failed", err)
+		return nil, fault.Internal("error retrieving user")
+	}
+
+	return user, nil
 }
 
 func (us userService) UpdateUser(ctx context.Context, id uuid.UUID, userU *model.UserU) (*model.User, error) {

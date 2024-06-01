@@ -33,13 +33,11 @@ func (User) Edges() []ent.Edge {
 		// O2M User <-- Session
 		edge.To("sessions", Session.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 		// O2M User <-- Comment
-		edge.To("comments", Comment.Type).Annotations(entsql.OnDelete(entsql.SetNull)),
+		edge.To("comments", Comment.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 		// O2M User <-- Like
 		edge.To("likes", Like.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 		// M2M User <--> User (Followers)
 		edge.To("following", User.Type).From("followers").Annotations(entsql.OnDelete(entsql.Cascade)),
-		// M2M User <--> User (friends)
-		edge.To("friends", User.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 		// O2M User <-- Review
 		edge.To("reviews", Review.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 		// M2M User (members) <--> List

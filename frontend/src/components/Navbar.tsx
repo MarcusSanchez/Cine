@@ -20,22 +20,12 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="container flex justify-between py-2 max-w-[1200px] my-1">
+      <nav className="container max-w-[1200px] flex justify-between py-2 my-1">
         <Link href="/" className="flex items-center">
-          <img src={Logo.src} alt="Cine" className="w-20 sm:w-24 h-min" />
+          <img src={Logo.src} alt="Cine" className="w-20 sm:w-24" />
         </Link>
 
         <div className="flex items-center gap-1 md:gap-2">
-          <Button
-            className="
-            flex justify-start
-            p-2 text-sm md:text-base text-stone-400 bg-brand-darker text-opacity-80 w-32 md:w-40 h-8 rounded-xl
-            hover:ring-[1px] hover:ring-brand-yellow hover:ring-opacity-80 hover:text-brand-light
-          "
-          >
-            <Search className="h-[12px] md:h-[16px]" />
-            Search...
-          </Button>
           {!user.loggedIn &&
             <>
               <Link
@@ -58,7 +48,19 @@ export default function Navbar() {
               </Link>
             </>
           }
-          {user.loggedIn && <ProfileDropDown />}
+          {user.loggedIn && <>
+            <Button
+              className="
+                flex justify-start
+                p-2 text-sm md:text-base text-stone-400 bg-brand-darker text-opacity-80 w-32 md:w-40 h-8 rounded-xl
+                hover:ring-[1px] hover:ring-brand-yellow hover:ring-opacity-80 hover:text-brand-light
+              "
+            >
+              <Search className="h-[12px] md:h-[16px]" />
+              Search...
+            </Button>
+            <ProfileDropDown />
+          </>}
         </div>
       </nav>
       <hr className="border-black mb-8" />
@@ -84,7 +86,7 @@ export function ProfileDropDown() {
       <DropdownMenuContent className="w-56 bg-brand-darker border-brand-yellow">
         <DropdownMenuLabel className="text-brand-yellow">My Account</DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-brand-yellow" />
-        <Link href={"/profile"}>
+        <Link href={"/profile/me"}>
           <DropdownMenuItem className="text-brand-yellow hover:cursor-pointer">
             <User className="mr-2 h-4 w-4" />
             <span>Profile</span>

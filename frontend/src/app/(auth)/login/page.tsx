@@ -2,34 +2,24 @@
 
 import { z } from "zod";
 import React, { ChangeEvent, FormEvent, useState } from "react";
-import { registerAction } from "@/actions/register-action";
 import { Button } from "@/components/ui/button";
-import { KeyRound, Mail, Monitor, User } from "lucide-react";
+import { KeyRound, LogIn, User } from "lucide-react";
+import { loginAction } from "@/actions/login-action";
 import Link from "next/link";
 import { useUserStore } from "@/app/state";
 import { useRouter } from "next/navigation";
 import { getCookie } from "@/lib/utils";
 
-const defaultPFP = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
-
 const formSchema = z.object({
   username: z.string()
     .min(3, "username must be at least 3 characters")
     .max(32, "username must be at most 32 characters"),
-  display_name: z.string()
-    .min(3, "display name must be at least 3 characters")
-    .max(32, "display name must be at most 32 characters"),
-  email: z.string()
-    .min(3, "email must be at least 3 characters")
-    .max(32, "email must be at most 32 characters")
-    .email("email must be a valid email address"),
   password: z.string()
     .min(8, "password must be at least 8 characters")
     .max(32, "password must be at most 32 characters")
     .regex(new RegExp(`[A-Z]`), `password must contain at least one uppercase letter`)
     .regex(new RegExp(`[0-9]`), `password must contain at least one digit`)
     .regex(new RegExp(`[!@#$%^&*()_+{}|:<>?~]`), `password must contain at least one special character`),
-  profile_picture: z.string().url("profile picture must be a valid image URL"),
 });
 type FormSchema = z.infer<typeof formSchema>;
 
@@ -38,13 +28,7 @@ export default function Register() {
   const router = useRouter();
 
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState<FormSchema>({
-    username: "",
-    display_name: "",
-    email: "",
-    password: "",
-    profile_picture: defaultPFP,
-  });
+  const [form, setForm] = useState<FormSchema>({ username: "", password: "" });
 
   if (user.loggedIn) router.push("/");
 
@@ -62,7 +46,8 @@ export default function Register() {
     }
     setError(null);
 
-    const result = await registerAction(values.data);
+    const { username, password } = values.data;
+    const result = await loginAction(username, password);
     if (!result.success) {
       setError(result.error);
       return;
@@ -75,9 +60,9 @@ export default function Register() {
   return (
     <div className="container w-[400px]">
       <form onSubmit={onSubmit}>
-        <h1 className="text-3xl text-center font-bold text-brand-light mb-1">Get Started!</h1>
+        <h1 className="text-3xl text-center font-bold text-brand-light mb-1">Welcome back!</h1>
         <p className="text-base text-center font-semibold text-brand-yellow mb-4">
-          Gain access to all the best cinema.
+          Did you miss us?
         </p>
 
         <hr className="border-brand-yellow border-b-1 border-opacity-80 mb-4" />
@@ -92,36 +77,6 @@ export default function Register() {
             placeholder="Username..."
             value={form.username}
             onChange={onChange("username")}
-            className="
-              mb-3 p-2 text-lg bg-brand-darker border-[1px] border-brand-yellow border-opacity-80 text-opacity-80 rounded-xl
-              text-brand-light placeholder:text-stone-500
-            "
-          />
-
-          <label className="text-stone-400 text-md p-1 flex gap-1">
-            <Monitor className="h-[20px] w-[20px]" />
-            Display Name
-          </label>
-          <input
-            type="text"
-            placeholder="Display Name..."
-            value={form.display_name}
-            onChange={onChange("display_name")}
-            className="
-              mb-3 p-2 text-lg bg-brand-darker border-[1px] border-brand-yellow border-opacity-80 text-opacity-80 rounded-xl
-              text-brand-light placeholder:text-stone-500
-            "
-          />
-
-          <label className="text-stone-400 text-md p-1 flex gap-1">
-            <Mail className="h-[20px] w-[20px]" />
-            Email
-          </label>
-          <input
-            type="email"
-            placeholder="Email..."
-            value={form.email}
-            onChange={onChange("email")}
             className="
               mb-3 p-2 text-lg bg-brand-darker border-[1px] border-brand-yellow border-opacity-80 text-opacity-80 rounded-xl
               text-brand-light placeholder:text-stone-500
@@ -149,20 +104,22 @@ export default function Register() {
             type="submit"
             className="my-4 text-lg font-bold text-brand-darker bg-brand-yellow hover:bg-brand-light"
           >
-            Register
+            <LogIn strokeWidth="2.5px" className="mr-1" />
+            Login
           </Button>
 
           <hr className="border-brand-yellow border-b-1 border-opacity-80 mb-4" />
 
           <p className="text-sm text-center text-brand-light mb-4">
-            Already have an account? {" "}
+            Don't have an account? {" "}
             <Link
-              href={"/login"}
+              href={"/register"}
               className="text-brand-yellow hover:underline"
             >
-              Click here to login.
+              Click here to register.
             </Link>
           </p>
+
         </div>
       </form>
     </div>

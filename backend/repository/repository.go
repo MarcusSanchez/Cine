@@ -26,17 +26,13 @@ type Repository[E, F, U any] interface {
 type (
 	SessionRepository Repository[*model.Session, *model.SessionF, *model.SessionU]
 	LikeRepository    Repository[*model.Like, *model.LikeF, *model.LikeU]
-	ReviewRepository  Repository[*model.Review, *model.ReviewF, *model.ReviewU]
 	MediaRepository   Repository[*model.Media, *model.MediaF, *model.MediaU]
 )
 
 type UserRepository interface {
 	Repository[*model.User, *model.UserF, *model.UserU]
 
-	OneFriend(ctx context.Context, user *model.User, friendID uuid.UUID) (*model.User, error)
-	AllFriends(ctx context.Context, user *model.User) ([]*model.User, error)
-	AddFriend(ctx context.Context, user *model.User, friendID uuid.UUID) error
-	RemoveFriend(ctx context.Context, user *model.User, friendID uuid.UUID) error
+	OneDetailed(ctx context.Context, id, userID uuid.UUID) (*model.DetailedUser, error)
 
 	OneFollowed(ctx context.Context, user *model.User, followedID uuid.UUID) (*model.User, error)
 	AllFollowed(ctx context.Context, user *model.User) ([]*model.User, error)
@@ -64,4 +60,10 @@ type CommentRepository interface {
 
 	AllAsDetailed(ctx context.Context, mediaID uuid.UUID, userID uuid.UUID) ([]*model.DetailedComment, error)
 	AllRepliesAsDetailed(ctx context.Context, comment *model.Comment, userID uuid.UUID) ([]*model.DetailedComment, error)
+}
+
+type ReviewRepository interface {
+	Repository[*model.Review, *model.ReviewF, *model.ReviewU]
+
+	AllWithUser(ctx context.Context, reviewFs ...*model.ReviewF) ([]*model.DetailedReview, error)
 }

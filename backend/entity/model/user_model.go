@@ -35,3 +35,14 @@ type UserF struct {
 	CreatedAt      *time.Time
 	UpdatedAt      *time.Time
 }
+
+type DetailedUser struct {
+	User           *User `json:"user"`
+	FollowingCount int   `json:"following_count"`
+	FollowersCount int   `json:"followers_count"`
+	LikesCount     int   `json:"likes_count"`
+	CommentsCount  int   `json:"comments_count"`
+	ReviewsCount   int   `json:"reviews_count"`
+	ListsCount     int   `json:"lists_count"`
+	Followed       bool  `json:"followed"`
+}

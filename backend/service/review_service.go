@@ -7,14 +7,13 @@ import (
 	"cine/pkg/logger"
 	"context"
 	"github.com/google/uuid"
-	"math"
 )
 
 type ReviewService interface {
 	CreateReview(ctx context.Context, input *CreateReviewInput) (*model.Review, error)
 	UpdateReview(ctx context.Context, userID, reviewID uuid.UUID, reviewU *model.ReviewU) (*model.Review, error)
 	DeleteReview(ctx context.Context, userID, reviewID uuid.UUID) error
-	GetAllReviews(ctx context.Context, ref int, mediaType model.MediaType) ([]*model.Review, error)
+	GetAllReviews(ctx context.Context, ref int, mediaType model.MediaType) ([]*model.DetailedReview, error)
 }
 type reviewService struct {
 	store  datastore.Store
@@ -59,9 +58,6 @@ func (rs *reviewService) CreateReview(ctx context.Context, input *CreateReviewIn
 	} else if exists {
 		return nil, fault.Conflict("a review already exists for this " + string(input.MediaType))
 	}
-
-	// Round the rating to the first decimal place i.e. 4.54 -> 4.5
-	input.Review.Rating = math.Round(input.Review.Rating*10) / 10
 
 	review, err := rs.store.Reviews().Insert(ctx, input.Review)
 	if err != nil {
@@ -121,7 +117,7 @@ func (rs *reviewService) DeleteReview(ctx context.Context, userID, reviewID uuid
 	return nil
 }
 
-func (rs *reviewService) GetAllReviews(ctx context.Context, ref int, mediaType model.MediaType) ([]*model.Review, error) {
+func (rs *reviewService) GetAllReviews(ctx context.Context, ref int, mediaType model.MediaType) ([]*model.DetailedReview, error) {
 	media, err := rs.media.GetMedia(ctx, ref, mediaType)
 	if err != nil {
 		if datastore.IsNotFound(err) {
@@ -131,7 +127,7 @@ func (rs *reviewService) GetAllReviews(ctx context.Context, ref int, mediaType m
 		return nil, fault.Internal("error getting media")
 	}
 
-	reviews, err := rs.store.Reviews().All(ctx, &model.ReviewF{MediaID: &media.ID})
+	reviews, err := rs.store.Reviews().AllWithUser(ctx, &model.ReviewF{MediaID: &media.ID})
 	if err != nil {
 		rs.logger.Error("failed getting reviews", err)
 		return nil, fault.Internal("error getting reviews")

@@ -176,7 +176,7 @@ func (cr *commentRepository) filters(commentFs []*model.CommentF) []predicate.Co
 func (cr *commentRepository) create(comment *model.Comment) *ent.CommentCreate {
 	return cr.client.Comment.Create().
 		SetID(uuid.New()).
-		SetUserID(*comment.UserID).
+		SetUserID(comment.UserID).
 		SetNillableReplyingToID(comment.ReplyingToID).
 		SetMediaID(comment.MediaID).
 		SetContent(comment.Content).

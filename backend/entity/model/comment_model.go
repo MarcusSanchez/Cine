@@ -7,7 +7,7 @@ import (
 
 type Comment struct {
 	ID           uuid.UUID  `json:"id"`
-	UserID       *uuid.UUID `json:"user_id"`
+	UserID       uuid.UUID  `json:"user_id"`
 	MediaID      uuid.UUID  `json:"media_id"`
 	ReplyingToID *uuid.UUID `json:"replying_to_id"`
 	Content      string     `json:"content"`

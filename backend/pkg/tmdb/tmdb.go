@@ -11,8 +11,8 @@ const url = "https://api.themoviedb.org/3"
 
 type API interface {
 	searchAPI
-	listMovieAPI
-	listShowAPI
+	movieAPI
+	showAPI
 }
 
 type api struct {

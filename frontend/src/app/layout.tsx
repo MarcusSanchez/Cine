@@ -17,7 +17,7 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "Cine",
+  title: "Cine | Cinema Social Platform",
   description: "A cinema social platform",
 };
 

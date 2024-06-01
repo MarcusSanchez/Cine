@@ -32,7 +32,7 @@ func (cc *CommentController) Routes(router fiber.Router, mw *middleware.Middlewa
 	comment.Post("/like/:commentID", mw.SignedIn, mw.CSRF, mw.ParseUUID("commentID"), cc.LikeComment)
 	comment.Post("/:mediaType/:ref", mw.SignedIn, mw.CSRF, mw.ParseMediaType("mediaType"), mw.ParseInt("ref"), cc.CreateComment)
 
-	comment.Delete("/like/:likeID", mw.SignedIn, mw.CSRF, mw.ParseUUID("likeID"), cc.UnlikeComment)
+	comment.Delete("/like/:commentID", mw.SignedIn, mw.CSRF, mw.ParseUUID("commentID"), cc.UnlikeComment)
 	comment.Delete("/:commentID", mw.SignedIn, mw.CSRF, mw.ParseUUID("commentID"), cc.DeleteComment)
 }
 
@@ -69,7 +69,7 @@ func (cc *CommentController) CreateComment(c *fiber.Ctx) error {
 
 	comment, err := cc.comment.CreateComment(c.Context(),
 		ref, mediaType, &model.Comment{
-			UserID:       &session.UserID,
+			UserID:       session.UserID,
 			Content:      p.Content,
 			ReplyingToID: replyingToID,
 		},
@@ -132,7 +132,7 @@ func (cc *CommentController) GetComments(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{"comments": comments})
+	return c.Status(http.StatusOK).JSON(fiber.Map{"detailed_comments": comments})
 }
 
 // GetCommentReplies [GET] /api/comments/:commentID/replies
@@ -148,7 +148,7 @@ func (cc *CommentController) GetCommentReplies(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"replies": replies})
 }
 
-// LikeComment [POST] /api/comments/:commentID/like
+// LikeComment [POST] /api/comments/like/:commentID
 func (cc *CommentController) LikeComment(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
 	commentID := c.Locals("commentID").(uuid.UUID)
@@ -166,12 +166,12 @@ func (cc *CommentController) LikeComment(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(fiber.Map{"like": like})
 }
 
-// UnlikeComment [DELETE] /api/comments/:likIDe
+// UnlikeComment [DELETE] /api/comments/like/:commentID
 func (cc *CommentController) UnlikeComment(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
-	likeID := c.Locals("likeID").(uuid.UUID)
+	commentID := c.Locals("commentID").(uuid.UUID)
 
-	err := cc.comment.UnlikeComment(c.Context(), session.UserID, likeID)
+	err := cc.comment.UnlikeComment(c.Context(), session.UserID, commentID)
 	if err != nil {
 		return err
 	}
