@@ -23,10 +23,9 @@ export function App({ children }: Readonly<{ children: ReactNode }>) {
       if (!result.success) return errorToast(toast, "Failed to authenticate", result.error);
 
       setUser({ ...result.data.user, loggedIn: true, csrf: csrf });
-      setLoaded(true);
     }
 
-    authenticate();
+    authenticate().then(() => setLoaded(true));
   }, [])
 
   return (

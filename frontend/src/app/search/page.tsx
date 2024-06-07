@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { useToast } from "@/components/ui/use-toast";
 import { errorToast } from "@/lib/utils";
 import { Simulate } from "react-dom/test-utils";
-import error = Simulate.error;
 
 export default function SearchPage() {
   const { toast } = useToast();
@@ -41,6 +40,7 @@ export default function SearchPage() {
       }
     }
 
+    if (!q) return;
     search();
   }, [q, filter]);
 

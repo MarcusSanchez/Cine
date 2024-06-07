@@ -81,7 +81,7 @@ function listName(mediaType: MediaType, list: MovieList | ShowList) {
 
 export const ListsSkeleton = () => (
   Array.from({ length: 5 }).map((_, i) => (
-    <div>
+    <div key={i}>
       <Skeleton className="text-2xl md:text-3xl font-bold text-brand-yellow mt-8 mb-4 h-8 w-[40%]" />
       <Carousel
         opts={{

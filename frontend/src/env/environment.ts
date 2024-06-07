@@ -1,8 +1,9 @@
 import { z } from "zod";
 import dotenv from "dotenv";
 
-if (process.env.NODE_ENV !== "production") {
+try {
   dotenv.config({ path: process.cwd() + "\\src\\env\\.env" });
+} catch (e: any) {
 }
 
 const variables = z.object({

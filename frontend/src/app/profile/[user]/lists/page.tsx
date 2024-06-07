@@ -42,6 +42,7 @@ export default function ProfileLists({ params }: { params: { user: string } }) {
         {lists.length < 1 && <p className="text-brand-light">No lists found</p>}
         {lists.map(l =>
           <List
+            key={l.list.id}
             params={params}
             list={l.list}
             medias={[...l.shows ?? [], ...l.movies ?? []]}
