@@ -8,7 +8,7 @@ RUN npm install
 
 COPY . .
 
-CMD ["npm", "run", "build"]
+ENTRYPOINT ["npm", "run", "build"]
 
 FROM node:20.11.1-alpine
 
