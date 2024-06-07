@@ -2,9 +2,11 @@ FROM node:20.11.1-alpine
 
 WORKDIR /app
 
-RUN npm i
+COPY package*.json ./
 
-RUN npm build
+RUN npm install
 
-ENTRYPOINT ["npm start"]
+RUN npm install
+
+ENTRYPOINT ["npm", "start"]
 
