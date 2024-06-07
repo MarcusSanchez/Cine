@@ -1,14 +1,18 @@
-FROM node:20.11.1-alpine
+FROM node:20.11.1-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package*.json .
 
 RUN npm install
 
 COPY . .
 
-RUN npm run build
+ENTRYPOINT ["npm run build"]
 
-ENTRYPOINT ["npm", "run", "start"]
+FROM node:20.11.1-alpine
+
+COPY --from=builder /app /app
+
+ENTRYPOINT ["npm run start"]
 
