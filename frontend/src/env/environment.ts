@@ -7,7 +7,7 @@ try {
 }
 
 const variables = z.object({
-  API_URL: z.string().url(),
+  API_URL: z.string(),
 });
 
 try {

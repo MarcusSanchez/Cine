@@ -8,11 +8,13 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build
+CMD ["npm", "run", "build"]
 
 FROM node:20.11.1-alpine
 
-COPY --from=builder /app /app
+WORKDIR /app
 
-RUN npm run start
+COPY --from=builder /app .
+
+ENTRYPOINT ["npm", "run", "start"]
 
