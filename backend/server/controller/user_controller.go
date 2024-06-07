@@ -23,12 +23,18 @@ func NewUserController(userService service.UserService) *UserController {
 
 func (uc *UserController) Routes(router fiber.Router, mw *middleware.Middleware) {
 	users := router.Group("/users")
+
 	users.Get("/me", mw.SignedIn, uc.GetMe)
 	users.Get("/:userID", mw.SignedIn, mw.ParseUUID("userID"), uc.GetUser)
+
 	users.Get("/detailed/me", mw.SignedIn, uc.GetDetailedMe)
 	users.Get("/detailed/:userID", mw.SignedIn, mw.ParseUUID("userID"), uc.GetDetailedUser)
+
 	users.Put("/", mw.SignedIn, mw.CSRF, uc.UpdateUser)
 	users.Delete("/", mw.SignedIn, mw.CSRF, uc.DeleteUser)
+
+	users.Post("/:userID/follow", mw.SignedIn, mw.CSRF, mw.ParseUUID("userID"), uc.FollowUser)
+	users.Delete("/:userID/unfollow", mw.SignedIn, mw.CSRF, mw.ParseUUID("userID"), uc.UnfollowUser)
 }
 
 // GetMe [GET] /api/users/me
@@ -130,6 +136,32 @@ func (uc *UserController) DeleteUser(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
 
 	err := uc.user.DeleteUser(c.Context(), session.UserID)
+	if err != nil {
+		return err
+	}
+
+	return c.SendStatus(http.StatusNoContent)
+}
+
+// FollowUser [POST] /api/users/:userID/follow
+func (uc *UserController) FollowUser(c *fiber.Ctx) error {
+	session := c.Locals("session").(*model.Session)
+	userID := c.Locals("userID").(uuid.UUID)
+
+	err := uc.user.FollowUser(c.Context(), session.UserID, userID)
+	if err != nil {
+		return err
+	}
+
+	return c.SendStatus(http.StatusNoContent)
+}
+
+// UnfollowUser [POST] /api/users/:userID/unfollow
+func (uc *UserController) UnfollowUser(c *fiber.Ctx) error {
+	session := c.Locals("session").(*model.Session)
+	userID := c.Locals("userID").(uuid.UUID)
+
+	err := uc.user.UnfollowUser(c.Context(), session.UserID, userID)
 	if err != nil {
 		return err
 	}

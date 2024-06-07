@@ -2,7 +2,8 @@
 
 import React from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DetailedMovie } from "@/models/models";
+import { DetailedMovie, MediaType } from "@/models/models";
+import AddToListDialog from "@/components/AddToListDialog";
 
 const posterBaseURL = "https://image.tmdb.org/t/p/w500";
 const backdropBaseURL = "https://image.tmdb.org/t/p/original";
@@ -46,10 +47,11 @@ const MovieContent = ({ movie }: { movie: DetailedMovie | null }) => (
                 <span className="text-white">Release Date: </span>
                 <span className="text-brand-light">{movie?.release_date}</span>
               </div>
-              <div className="mt-4">
+              <div className="mt-4 mb-4">
                 <span className="text-white">Status: </span>
                 <span className="text-brand-light">{movie?.status}</span>
               </div>
+              <AddToListDialog mediaType={MediaType.Movie} refID={movie.id} />
             </div>
           </div>
         </div>

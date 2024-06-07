@@ -9,6 +9,8 @@ import { useUserStore } from "@/app/state";
 import { DetailedReview, MediaType } from "@/models/models";
 import editReviewAction from "@/actions/edit-review-action";
 import deleteReviewAction from "@/actions/delete-review-action";
+import { useToast } from "@/components/ui/use-toast";
+import { errorToast } from "@/lib/utils";
 
 const formSchema = z.object({
   content: z.string()
@@ -28,8 +30,16 @@ type ReviewFormProps = {
   setViewReviewForm: (view: boolean) => void
 };
 
-export default function ReviewForm({ refID, media = MediaType.Movie, reviews, setReviews, setViewReviewForm }: ReviewFormProps) {
+export default function ReviewForm({
+  refID,
+  media = MediaType.Movie,
+  reviews,
+  setReviews,
+  setViewReviewForm
+}: ReviewFormProps) {
   const { user } = useUserStore();
+  const { toast } = useToast();
+
   const userReview = reviews.find((review) => review.user.id === user.id);
 
   const [data, setData] = useState({
@@ -43,11 +53,9 @@ export default function ReviewForm({ refID, media = MediaType.Movie, reviews, se
         setData({ ...data, content: e.target.value.slice(0, 140) });
         break;
       case "rating":
-        if (e.target.value === "") {
-          setData({ ...data, rating: "" });
-          return;
-        }
+        if (e.target.value === "") return setData({ ...data, rating: "" });
         if (!/^\d+$/.test(e.target.value)) return;
+
         const rating = parseInt(e.target.value);
         if (rating > 10 || rating < 1) return;
 
@@ -64,18 +72,19 @@ export default function ReviewForm({ refID, media = MediaType.Movie, reviews, se
 
     if (!userReview) {
       const result = await createReviewAction(user.csrf, values.data, media, refID);
-      if (!result.success) return;
+      if (!result.success) return errorToast(toast, "Failed to create review.", result.error);
       setReviews([{ user, review: result.review }, ...reviews]);
     } else {
       const result = await editReviewAction(user.csrf, values.data, userReview.review.id);
-      if (!result.success) return;
+      if (!result.success) return errorToast(toast, "Failed to edit review.", result.error);
       setReviews(reviews.map((review) => review.user.id === user.id ? { user, review: result.review } : review));
     }
   };
 
   const deleteReview = async () => {
     const result = await deleteReviewAction(user.csrf, userReview!.review.id)
-    if (!result.success) return;
+    if (!result.success) return errorToast(toast, "Failed to delete review.", result.error);
+
     setReviews(reviews.filter((review) => review.user.id !== user.id));
     setViewReviewForm(true);
     setData({ content: "", rating: "" });

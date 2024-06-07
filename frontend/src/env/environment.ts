@@ -1,7 +1,9 @@
 import { z } from "zod";
 import dotenv from "dotenv";
 
-dotenv.config({ path: process.cwd() + "\\src\\env\\.env" });
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config({ path: process.cwd() + "\\src\\env\\.env" });
+}
 
 const variables = z.object({
   API_URL: z.string().url(),
@@ -16,6 +18,7 @@ try {
 
 declare global {
   namespace NodeJS {
-    interface ProcessEnv extends z.infer<typeof variables> {}
+    interface ProcessEnv extends z.infer<typeof variables> {
+    }
   }
 }

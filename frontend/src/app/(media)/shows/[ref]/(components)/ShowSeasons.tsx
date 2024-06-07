@@ -6,9 +6,11 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import fetchSeasonDetailsAction from "@/actions/fetch-season-details-action";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/components/ui/use-toast";
+import { errorToast } from "@/lib/utils";
 
 export default function ShowSeasons({ show }: { show: DetailedShow | null }) {
-  const seasons = show?.seasons ?? [];
+  const seasons = show?.seasons.filter(s => s.name !== "Specials") ?? [];
   const [seasonName, setSeasonName] = useState<string>("");
   const season = seasons.find(s => s.name === seasonName);
 
@@ -32,12 +34,14 @@ export default function ShowSeasons({ show }: { show: DetailedShow | null }) {
 const fetchedSeasons = new Map<[number, number], DetailedSeason>();
 
 function ShowSeasonContent({ show, season }: { show: DetailedShow | null, season?: Season }) {
+  const { toast } = useToast();
+
   const [content, setContent] = useState<DetailedSeason | null>(null);
 
   useEffect(() => {
     const fetchSeason = async () => {
       const res = await fetchSeasonDetailsAction(show!.id, season!.season_number);
-      if (!res.success) return;
+      if (!res.success) return errorToast(toast, "Failed to fetch season details", "Please try again later");
 
       fetchedSeasons.set([show!.id, season!.season_number], res.detailedSeason);
       setContent(res.detailedSeason);
@@ -45,10 +49,7 @@ function ShowSeasonContent({ show, season }: { show: DetailedShow | null, season
 
     if (!show || !season) return;
     const fetched = fetchedSeasons.get([show.id, season.season_number]);
-    if (fetched) {
-      setContent(fetched);
-      return;
-    }
+    if (fetched) return setContent(fetched);
 
     fetchSeason();
   }, [show, season])
@@ -75,12 +76,15 @@ function ShowSeasonContent({ show, season }: { show: DetailedShow | null, season
   );
 }
 
+const episodeErrorImage = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Image_not_available.png/640px-Image_not_available.png";
+
 const EpisodeCard = ({ episode }: { episode: Episode }) => (
   <div className="flex flex-col">
     <img
       className="rounded-xl border border-brand-yellow mb-2"
       src={`https://image.tmdb.org/t/p/original${episode.still_path}`}
       alt={episode.name}
+      onError={(e) => (e.target as HTMLImageElement).src = episodeErrorImage}
     />
     <div>
       <h3 className="text-brand-yellow">{episode.episode_number}. {episode.name}</h3>

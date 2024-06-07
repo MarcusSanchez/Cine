@@ -20,11 +20,17 @@ func (mc *MediaController) Routes(router fiber.Router, mw *middleware.Middleware
 	media := router.Group("/medias")
 	media.Get("/movie/:ref", mw.SignedIn, mw.ParseInt("ref"), mc.GetMovie)
 	media.Get("/show/:ref", mw.SignedIn, mw.ParseInt("ref"), mc.GetShow)
+
 	media.Get("/movie/:ref/credits", mw.SignedIn, mw.ParseInt("ref"), mc.GetMovieCredits)
 	media.Get("/show/:ref/credits", mw.SignedIn, mw.ParseInt("ref"), mc.GetShowCredits)
+
 	media.Get("/show/:ref/season/:season", mw.SignedIn, mw.ParseInt("ref"), mw.ParseInt("season"), mc.GetShowDetailedSeason)
-	media.Get("/movie/:list", mw.SignedIn, mw.ParseInt("ref"), mw.ParseMovieList("list"), mc.GetMovieList)
-	media.Get("/show/:list", mw.SignedIn, mw.ParseInt("ref"), mw.ParseShowList("list"), mc.GetShowList)
+
+	media.Get("/movie/list/:list", mw.SignedIn, mw.ParseMovieList("list"), mc.GetMovieList)
+	media.Get("/show/list/:list", mw.SignedIn, mw.ParseShowList("list"), mc.GetShowList)
+
+	media.Get("/search/movies/:query", mw.SignedIn, mc.SearchMovies)
+	media.Get("/search/shows/:query", mw.SignedIn, mc.SearchShows)
 }
 
 // GetMovie [Get] /api/medias/movie/:ref
@@ -88,7 +94,7 @@ func (mc *MediaController) GetShowDetailedSeason(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"detailed_season": detailedSeason})
 }
 
-// GetMovieList [Get] /api/medias/movie/:list
+// GetMovieList [Get] /api/medias/movie/list/:list
 func (mc *MediaController) GetMovieList(c *fiber.Ctx) error {
 	list := c.Locals("list").(tmdb.MovieList)
 
@@ -100,11 +106,37 @@ func (mc *MediaController) GetMovieList(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"movies": movies})
 }
 
-// GetShowList [Get] /api/medias/show/:list
+// GetShowList [Get] /api/medias/show/list/:list
 func (mc *MediaController) GetShowList(c *fiber.Ctx) error {
 	list := c.Locals("list").(tmdb.ShowList)
 
 	shows, err := mc.media.GetShowList(c.Context(), list)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{"shows": shows})
+}
+
+// SearchMovies [Get] /api/medias/search/movies/:query
+func (mc *MediaController) SearchMovies(c *fiber.Ctx) error {
+	query := c.Params("query")
+	page := c.QueryInt("page", 1)
+
+	movies, err := mc.media.SearchMovies(c.Context(), query, page)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{"movies": movies})
+}
+
+// SearchShows [Get] /api/medias/search/shows/:query
+func (mc *MediaController) SearchShows(c *fiber.Ctx) error {
+	query := c.Params("query")
+	page := c.QueryInt("page", 1)
+
+	shows, err := mc.media.SearchShows(c.Context(), query, page)
 	if err != nil {
 		return err
 	}

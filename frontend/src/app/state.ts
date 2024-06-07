@@ -3,6 +3,7 @@
 import { atom, useAtom } from 'jotai';
 import logoutAction from "@/actions/logout-action";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
 
 const userAtom = atom({
   id: "",
@@ -16,6 +17,7 @@ const userAtom = atom({
 export function useUserStore() {
   const [user, setUser] = useAtom(userAtom);
   const router = useRouter();
+  const { toast } = useToast();
 
   const clearUser = () => setUser({
     id: "",
@@ -28,10 +30,10 @@ export function useUserStore() {
 
   const logout = async () => {
     const result = await logoutAction(user.csrf);
-    if (!result.success) {
-      console.error(result.error);
-      return;
-    }
+    if (!result.success) return toast({
+      title: "Failed to logout",
+      description: result.error,
+    });
 
     clearUser();
     router.push("/");

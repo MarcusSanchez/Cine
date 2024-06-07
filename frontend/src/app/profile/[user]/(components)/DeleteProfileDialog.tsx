@@ -15,17 +15,18 @@ import { useUserStore } from "@/app/state";
 import { useRouter } from "next/navigation";
 import deleteUserAction from "@/actions/delete-user-action";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { errorToast } from "@/lib/utils";
 
 export default function DeleteProfileDialog() {
   const { user, clearUser } = useUserStore();
+  const { toast } = useToast();
+
   const router = useRouter();
 
   const deleteUser = async () => {
     const result = await deleteUserAction(user.csrf);
-    if (!result.success) {
-      console.error(result.error);
-      return;
-    }
+    if (!result.success) return errorToast(toast, "Failed to delete profile", result.error);
 
     clearUser();
     router.push("/");

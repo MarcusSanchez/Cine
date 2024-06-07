@@ -48,10 +48,7 @@ export default function Register() {
 
     const { username, password } = values.data;
     const result = await loginAction(username, password);
-    if (!result.success) {
-      setError(result.error);
-      return;
-    }
+    if (!result.success) return setError(result.error);
 
     setUser({ ...result.data.user, loggedIn: true, csrf: getCookie("csrf")! })
     router.push("/");

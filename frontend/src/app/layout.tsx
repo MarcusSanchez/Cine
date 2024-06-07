@@ -6,6 +6,7 @@ import "@/env/environment";
 import API from "@/api/api";
 import React from "react";
 import { App } from "@/app/App";
+import { Toaster } from "@/components/ui/toaster";
 
 API.url = process.env.API_URL;
 
@@ -30,6 +31,7 @@ export default function RootLayout({
     <html lang="en" className={roboto.className}>
       <body>
         <App>{children}</App>
+        <Toaster /> {/* allows for toast popups */}
       </body>
     </html>
   );

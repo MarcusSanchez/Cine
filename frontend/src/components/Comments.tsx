@@ -7,9 +7,10 @@ import Link from "next/link";
 import { ThumbsUp } from "lucide-react";
 import { likeCommentAction, unlikeCommentAction } from "@/actions/like-unlike-actions";
 import { Button } from "@/components/ui/button";
-import { timeAgo } from "@/lib/utils";
+import { errorToast, timeAgo } from "@/lib/utils";
 import deleteCommentAction from "@/actions/delete-comment-action";
 import Replies from "@/components/Replies";
+import { useToast } from "@/components/ui/use-toast";
 
 type CommentsProps = {
   media: MediaType;
@@ -18,6 +19,7 @@ type CommentsProps = {
 
 export default function Comments({ media, refID }: CommentsProps) {
   const { user } = useUserStore();
+  const { toast } = useToast();
 
   let [comments, setComments] = useState<DetailedComment[]>([]);
   comments = [...comments.filter((c) => c.user.id === user.id), ...comments.filter((c) => c.user.id !== user.id)];
@@ -28,7 +30,7 @@ export default function Comments({ media, refID }: CommentsProps) {
   useEffect(() => {
     const fetchComments = async () => {
       const result = await fetchCommentsAction(media, refID);
-      if (!result.success) return;
+      if (!result.success) return errorToast(toast, "Failed to fetch comments", "Please try again later");
       setComments(result.detailedComments);
     };
 
@@ -79,11 +81,13 @@ export function Comment({
   refID
 }: CommentProps) {
   const { user } = useUserStore();
+  const { toast } = useToast();
+
   const [showReplies, setShowReplies] = useState<DetailedComment[]>([])
 
   const handleDelete = async (commentID: string) => {
     const result = await deleteCommentAction(user.csrf, commentID);
-    if (!result.success) return;
+    if (!result.success) return errorToast(toast, "Failed to delete comment", "Please try again later");
 
     // if the comment is replying to another comment, decrement the replies_count of the parent comment
     if (comments.find((c) => c.comment.id === commentID)?.comment.replying_to_id) {
@@ -113,7 +117,7 @@ export function Comment({
     const action = liked_by_user ? unlikeCommentAction : likeCommentAction;
 
     const result = await action(user.csrf, commentID);
-    if (!result.success) return;
+    if (!result.success) return errorToast(toast, `Failed to ${liked_by_user ? "unlike" : "like"} comment`, result.error);
 
     const newLikeCount = likes_count + (liked_by_user ? -1 : 1);
 

@@ -25,8 +25,7 @@ func (lc *ListController) Routes(router fiber.Router, mw *middleware.Middleware)
 
 	list.Get("/", mw.SignedIn, lc.GetYourLists)
 	list.Get("/:userID", mw.SignedIn, mw.ParseUUID("userID"), lc.GetUsersPublicLists)
-	list.Get("/:listID/detailed", mw.SignedIn, mw.ParseUUID("listID"), lc.GetYourDetailedList)
-	list.Get("/:listID/detailed/public", mw.SignedIn, mw.ParseUUID("listID"), lc.GetPublicDetailedList)
+	list.Get("/:listID/detailed", mw.SignedIn, mw.ParseUUID("listID"), lc.GetDetailedList)
 
 	list.Put("/:listID", mw.SignedIn, mw.CSRF, mw.ParseUUID("listID"), lc.UpdateList)
 
@@ -93,7 +92,7 @@ func (lc *ListController) UpdateList(c *fiber.Ctx) error {
 		return fault.BadRequest(err.Error())
 	}
 
-	if errs := schemas.ListTitleSchema.Validate(*p.Title); errs != nil {
+	if errs := schemas.ListTitleSchema.Optional().Validate(*p.Title); errs != nil {
 		return fault.Validation(errs.One())
 	}
 
@@ -109,7 +108,7 @@ func (lc *ListController) UpdateList(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{"list": list})
 }
 
-// AddMemberToList [POST] /api/lists/:listID/members/:useIDr
+// AddMemberToList [POST] /api/lists/:listID/members/:userID
 func (lc *ListController) AddMemberToList(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
 	listID := c.Locals("listID").(uuid.UUID)
@@ -123,7 +122,7 @@ func (lc *ListController) AddMemberToList(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusNoContent)
 }
 
-// RemoveMemberFromList [DELETE] /api/lists/:listID/members/:useIDr
+// RemoveMemberFromList [DELETE] /api/lists/:listID/members/:userID
 func (lc *ListController) RemoveMemberFromList(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
 	listID := c.Locals("listID").(uuid.UUID)
@@ -146,10 +145,10 @@ func (lc *ListController) GetYourLists(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{"lists": lists})
+	return c.Status(http.StatusOK).JSON(fiber.Map{"detailed_lists": lists})
 }
 
-// GetUsersPublicLists [GET] /api/lists/:useIDr
+// GetUsersPublicLists [GET] /api/lists/:userID
 func (lc *ListController) GetUsersPublicLists(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(uuid.UUID)
 
@@ -158,32 +157,20 @@ func (lc *ListController) GetUsersPublicLists(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{"lists": lists})
+	return c.Status(http.StatusOK).JSON(fiber.Map{"detailed_lists": lists})
 }
 
-// GetYourDetailedList [GET] /api/lists/:listID/detailed
-func (lc *ListController) GetYourDetailedList(c *fiber.Ctx) error {
+// GetDetailedList [GET] /api/lists/:listID/detailed
+func (lc *ListController) GetDetailedList(c *fiber.Ctx) error {
 	session := c.Locals("session").(*model.Session)
 	listID := c.Locals("listID").(uuid.UUID)
 
-	detailedList, err := lc.list.GetPrivateDetailedList(c.Context(), session.UserID, listID)
+	detailedList, err := lc.list.GetDetailedList(c.Context(), session.UserID, listID)
 	if err != nil {
 		return err
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{"detailed-list": detailedList})
-}
-
-// GetPublicDetailedList [GET] /api/lists/:listID/detailed/public
-func (lc *ListController) GetPublicDetailedList(c *fiber.Ctx) error {
-	listID := c.Locals("listID").(uuid.UUID)
-
-	detailedList, err := lc.list.GetPublicDetailedList(c.Context(), listID)
-	if err != nil {
-		return err
-	}
-
-	return c.Status(http.StatusOK).JSON(fiber.Map{"detailed-list": detailedList})
+	return c.Status(http.StatusOK).JSON(fiber.Map{"detailed_list": detailedList})
 }
 
 // AddMovieToList [POST] /api/lists/:listID/movie/:ref

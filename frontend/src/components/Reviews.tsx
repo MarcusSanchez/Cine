@@ -24,19 +24,20 @@ const Reviews = ({ reviews }: { reviews: DetailedReview[] | null }) => (
       </div>
 
       {reviews.length > 3 &&
+
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="link" className="text-brand-yellow px-0">
               Show all reviews
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-brand-dark border-brand-yellow overflow-y-scroll h-min h-max-[80%]">
+          <DialogContent className="bg-brand-dark border-brand-yellow max-h-[90%] overflow-y-scroll no-scrollbar">
             <DialogHeader>
               <DialogTitle className="text-brand-yellow">Reviews</DialogTitle>
             </DialogHeader>
 
             <DialogBody className="w-full">
-              <div className="grid grid-cols-1 gap-4">
+              <div className="flex flex-col gap-4 ">
                 {reviews.map((review) => (
                   <ReviewCard key={review.review.id} review={review} />
                 ))}
@@ -53,10 +54,10 @@ export const ReviewCard = ({ review }: { review: DetailedReview }) => (
   <div className="bg-brand-dark p-4 rounded-xl border border-brand-yellow">
     <div className="flex items-center justify-between">
       <Link href={`/profile/${review.user.id}`}>
-        <div className="flex items-center">
+        <div className="flex items-center group">
           <img src={review.user.profile_picture} alt={review.user.username} className="w-12 h-12 rounded-full" />
           <div className="ml-4 flex flex-col">
-            <span className="text-xl text-brand-yellow font-bold">{review.user.username}</span>
+            <span className="text-xl text-brand-yellow font-bold group-hover:text-stone-500">{review.user.username}</span>
             <span className="text-sm text-brand-light font-bold">@{review.user.username}</span>
           </div>
         </div>

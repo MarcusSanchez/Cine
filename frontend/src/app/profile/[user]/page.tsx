@@ -5,8 +5,16 @@ import React, { ReactNode, useEffect, useState } from "react";
 import fetchUserStatsAction from "@/actions/fetch-user-stats-action";
 import DeleteProfileDialog from "@/app/profile/[user]/(components)/DeleteProfileDialog";
 import EditProfileDialog from "@/app/profile/[user]/(components)/EditProfileDialog";
+import { useAtom } from "jotai";
+import { followedAtom } from "@/app/profile/[user]/state";
+import { useToast } from "@/components/ui/use-toast";
+import { errorToast } from "@/lib/utils";
 
 export default function Profile({ params }: { params: { user: string } }) {
+  const { toast } = useToast();
+
+  const [followed, setFollowed] = useAtom(followedAtom);
+
   const [likes, setLikes] = useState(0);
   const [comments, setComments] = useState(0);
   const [reviews, setReviews] = useState(0);
@@ -17,7 +25,7 @@ export default function Profile({ params }: { params: { user: string } }) {
   useEffect(() => {
     const fetchStats = async () => {
       const result = await fetchUserStatsAction(params.user);
-      if (!result.success) return;
+      if (!result.success) return errorToast(toast, "Failed to fetch user stats", "Please try again later");
 
       const { stats } = result.data;
 
@@ -26,11 +34,20 @@ export default function Profile({ params }: { params: { user: string } }) {
       setReviews(stats.reviews_count);
       setLists(stats.lists_count);
       setFollowing(stats.following_count);
+      setFollowed(stats.followed);
       setFollowers(stats.followers_count);
+
+      // due to race condition, we adjust the count based on the followed status
+      if (stats.followers_count === 0) return;
+      if (stats.followed) setFollowers(stats.followers_count - 1);
     }
 
     fetchStats();
   }, []);
+
+  useEffect(() => {
+    setFollowers(followed ? followers + 1 : followers - 1);
+  }, [followed]);
 
   return (
     <div className="container mb-8">

@@ -105,6 +105,24 @@ func (lr *listRepository) DeleteExec(ctx context.Context, listFs ...*model.ListF
 	return affected, c.error(err)
 }
 
+func (lr *listRepository) AllWithMedia(ctx context.Context, listF ...*model.ListF) ([]*model.ListWithMedia, error) {
+	q := lr.client.List.Query()
+	q = q.Where(lr.filters(listF)...).
+		WithMedias(func(q *ent.MediaQuery) { q.Limit(6) })
+
+	lists, err := q.All(ctx)
+	return lr.listWithMedias(lists), c.error(err)
+}
+
+func (lr *listRepository) OneWithMedia(ctx context.Context, listF ...*model.ListF) (*model.ListWithMedia, error) {
+	q := lr.client.List.Query()
+	q = q.Where(lr.filters(listF)...).
+		WithMedias(func(q *ent.MediaQuery) { q.Limit(6) })
+
+	list, err := q.First(ctx)
+	return lr.listWithMedia(list), c.error(err)
+}
+
 func (lr *listRepository) AllMembers(ctx context.Context, list *model.List) ([]*model.User, error) {
 	q := lr.client.List.Query().
 		Where(List.ID(list.ID)).
@@ -213,4 +231,19 @@ func (lr *listRepository) createBulk(lists []*model.List) *ent.ListCreateBulk {
 		builders = append(builders, lr.create(list))
 	}
 	return lr.client.List.CreateBulk(builders...)
+}
+
+func (lr *listRepository) listWithMedias(lists []*ent.List) []*model.ListWithMedia {
+	lwm := make([]*model.ListWithMedia, 0, len(lists))
+	for _, list := range lists {
+		lwm = append(lwm, lr.listWithMedia(list))
+	}
+	return lwm
+}
+
+func (lr *listRepository) listWithMedia(list *ent.List) *model.ListWithMedia {
+	return &model.ListWithMedia{
+		List:   c.list(list),
+		Medias: c.medias(list.Edges.Medias),
+	}
 }

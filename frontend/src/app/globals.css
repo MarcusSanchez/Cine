@@ -88,3 +88,8 @@
     @apply h-full;
   }
 }
+
+/* Hide Scrollbar on Chrome */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

@@ -38,6 +38,30 @@ export enum MediaType {
   Show = "show"
 }
 
+export type Movie = {
+  id: number;
+  overview: string;
+  genre_ids: number[];
+  backdrop_path: string;
+  original_language: string;
+  popularity: number;
+  poster_path: string;
+  release_date: string;
+  title: string;
+  video: boolean;
+};
+
+export type Show = {
+  id: number;
+  overview: string;
+  genre_ids: number[];
+  backdrop_path: string;
+  original_language: string;
+  popularity: number;
+  poster_path: string;
+  first_air_date: string;
+  name: string;
+};
 
 export type Comment = {
   id: string;
@@ -254,3 +278,48 @@ export type Episode = {
   vote_average: number;
   vote_count: number;
 }
+
+export enum MovieList {
+  NowPlaying = "nowPlaying",
+  Popular = "popular",
+  TopRated = "topRated",
+  Upcoming = "upcoming",
+}
+
+export enum ShowList {
+  AiringToday = "airingToday",
+  Popular = "popular",
+  TopRated = "topRated",
+  OnTheAir = "onTheAir",
+}
+
+export type List = {
+  id: string,
+  owner_id: string,
+  name: string,
+  is_public: boolean,
+  created_at: string,
+  updated_at?: string
+}
+
+export type DetailedList = {
+  list: List,
+  members: User[],
+  movies: Media[],
+  shows: Media[]
+}
+
+export type Media = {
+  id: string,
+  ref: number,
+  media_type: MediaType,
+  overview: string,
+  backdrop_path?: string,
+  language: string,
+  poster_path?: string,
+  release_date?: string,
+  title: string,
+  created_at: string,
+  updated_at?: string
+}
+

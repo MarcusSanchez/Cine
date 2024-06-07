@@ -54,10 +54,7 @@ export default function EditProfileDialog() {
     e.preventDefault();
 
     const values = formSchema.safeParse(form);
-    if (!values.success) {
-      setError(values.error.errors[0].message);
-      return;
-    }
+    if (!values.success) return setError(values.error.errors[0].message);
     setError(null);
 
     const { username, display_name, password, profile_picture } = values.data;
@@ -68,15 +65,11 @@ export default function EditProfileDialog() {
       password === "" &&
       profile_picture === ""
     ) {
-      setError("no fields to update");
-      return;
+      return setError("no fields to update");
     }
 
     const result = await updateUserAction(user.csrf, { username, display_name, password, profile_picture });
-    if (!result.success) {
-      setError(result.error);
-      return;
-    }
+    if (!result.success) return setError(result.error)
 
     setUser({ ...user, ...result.data.user });
     dialogRef.current?.click();

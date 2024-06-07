@@ -3,6 +3,8 @@ import { DetailedComment, MediaType } from "@/models/models";
 import { useUserStore } from "@/app/state";
 import { Button } from "@/components/ui/button";
 import createCommentAction from "@/actions/create-comment-action";
+import { useToast } from "@/components/ui/use-toast";
+import { errorToast } from "@/lib/utils";
 
 type CommentFormProps = {
   comments: DetailedComment[],
@@ -14,13 +16,15 @@ type CommentFormProps = {
 
 export default function CommentForm({ comments, setComments, media, refID, replyingTo }: CommentFormProps) {
   const { user } = useUserStore();
+  const { toast } = useToast();
+
   const [content, setContent] = useState("");
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     const result = await createCommentAction(user.csrf, content, media, refID, replyingTo);
-    if (!result.success) return;
+    if (!result.success) return errorToast(toast, "Failed to create comment", "Please try again later");
     setContent("");
     setComments([{
       user,

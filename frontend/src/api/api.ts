@@ -2,13 +2,19 @@ import { FormSchema as ReviewFormSchema } from "@/components/UserReview";
 import {
   Comment,
   DetailedComment,
+  DetailedList,
   DetailedMovie,
-  DetailedReview, DetailedSeason,
+  DetailedReview,
+  DetailedSeason,
   DetailedShow,
+  List,
   MediaType,
+  Movie,
   MovieCredits,
+  MovieList,
   Review,
   Session,
+  Show,
   ShowCredits,
   User,
   UserStats
@@ -116,10 +122,6 @@ export default class API {
       profile_picture?: string,
     }
   ) {
-    for (const key in input) {
-      if (!input[key as keyof typeof input]) delete input[key as keyof typeof input];
-    }
-
     const response = await fetch(`${API.url}/users`, {
       method: "PUT",
       headers: {
@@ -369,5 +371,227 @@ export default class API {
     return await response.json() as { replies: DetailedComment[] };
   }
 
+  static async fetchMovieList(list: MovieList, sessionToken?: string) {
+    const headers: HeadersInit = sessionToken ? { "X-Session-Token": sessionToken } : {};
+    const response = await fetch(`${API.url}/medias/movie/list/${list}`, { headers });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
 
+    return await response.json() as { movies: Movie[] };
+  }
+
+  static async fetchShowList(list: string, sessionToken?: string) {
+    const headers: HeadersInit = sessionToken ? { "X-Session-Token": sessionToken } : {};
+    const response = await fetch(`${API.url}/medias/show/list/${list}`, { headers });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    return await response.json() as { shows: Show[] };
+  }
+
+  static async searchMovies(query: string, page: number, sessionToken: string) {
+    const headers: HeadersInit = { "X-Session-Token": sessionToken };
+    const response = await fetch(`${API.url}/medias/search/movies/${query}?page=${page}`, { headers });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    return await response.json() as { movies: Movie[] };
+  }
+
+  static async searchShows(query: string, page: number, sessionToken: string) {
+    const headers: HeadersInit = { "X-Session-Token": sessionToken };
+    const response = await fetch(`${API.url}/medias/search/shows/${query}?page=${page}`, { headers });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    return await response.json() as { shows: Show[] };
+  }
+
+  static async fetchMyLists(sessionToken: string) {
+    const headers: HeadersInit = { "X-Session-Token": sessionToken };
+    const response = await fetch(`${API.url}/lists`, { headers });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    return await response.json() as { detailed_lists: DetailedList[] };
+  }
+
+  static async fetchUserLists(user: string, sessionToken: string) {
+    const headers: HeadersInit = { "X-Session-Token": sessionToken };
+    const response = await fetch(`${API.url}/lists/${user}`, { headers });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    return await response.json() as { detailed_lists: DetailedList[] };
+  }
+
+  static async fetchDetailedList(list: string, sessionToken: string) {
+    const headers: HeadersInit = { "X-Session-Token": sessionToken };
+    const response = await fetch(`${API.url}/lists/${list}/detailed`, { headers });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    const data = await response.json() as { detailed_list: DetailedList };
+    return { list: data.detailed_list };
+  }
+
+  static async createList(csrf: string, sessionToken: string, title: string) {
+    const response = await fetch(`${API.url}/lists`, {
+      method: "POST",
+      headers: {
+        "X-CSRF-Token": csrf,
+        "X-Session-Token": sessionToken,
+      },
+      body: JSON.stringify({ title }),
+    });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    return await response.json() as { list: List };
+  }
+
+  static async updateList(csrf: string, sessionToken: string, list: string, title?: string, isPublic?: boolean) {
+    const response = await fetch(`${API.url}/lists/${list}`, {
+      method: "PUT",
+      headers: {
+        "X-CSRF-Token": csrf,
+        "X-Session-Token": sessionToken,
+      },
+      body: JSON.stringify({ title, public: isPublic }),
+    });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    return { success: true };
+  }
+
+  static async deleteList(csrf: string, sessionToken: string, list: string) {
+    const response = await fetch(`${API.url}/lists/${list}`, {
+      method: "DELETE",
+      headers: {
+        "X-CSRF-Token": csrf,
+        "X-Session-Token": sessionToken,
+      },
+    });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    return { success: true };
+  }
+
+  static async addMovieToList(csrf: string, sessionToken: string, list: string, ref: number) {
+    const response = await fetch(`${API.url}/lists/${list}/movie/${ref}`, {
+      method: "POST",
+      headers: {
+        "X-CSRF-Token": csrf,
+        "X-Session-Token": sessionToken,
+      },
+    });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    return { success: true };
+  }
+
+  static async removeMovieFromList(csrf: string, sessionToken: string, list: string, ref: number) {
+    const response = await fetch(`${API.url}/lists/${list}/movie/${ref}`, {
+      method: "DELETE",
+      headers: {
+        "X-CSRF-Token": csrf,
+        "X-Session-Token": sessionToken,
+      },
+    });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    return { success: true };
+  }
+
+  static async addShowToList(csrf: string, sessionToken: string, list: string, ref: number) {
+    const response = await fetch(`${API.url}/lists/${list}/show/${ref}`, {
+      method: "POST",
+      headers: {
+        "X-CSRF-Token": csrf,
+        "X-Session-Token": sessionToken,
+      },
+    });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    return { success: true };
+  }
+
+  static async removeShowFromList(csrf: string, sessionToken: string, list: string, ref: number) {
+    const response = await fetch(`${API.url}/lists/${list}/show/${ref}`, {
+      method: "DELETE",
+      headers: {
+        "X-CSRF-Token": csrf,
+        "X-Session-Token": sessionToken,
+      },
+    });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    return { success: true };
+  }
+
+  static async followUser(csrf: string, sessionToken: string, followeeID: string) {
+    const response = await fetch(`${API.url}/users/${followeeID}/follow`, {
+      method: "POST",
+      headers: {
+        "X-CSRF-Token": csrf,
+        "X-Session-Token": sessionToken,
+      },
+    });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    return { success: true };
+  }
+
+  static async unfollowUser(csrf: string, sessionToken: string, followeeID: string) {
+    const response = await fetch(`${API.url}/users/${followeeID}/unfollow`, {
+      method: "DELETE",
+      headers: {
+        "X-CSRF-Token": csrf,
+        "X-Session-Token": sessionToken,
+      },
+    });
+    if (!response.ok) {
+      const data = await response.json() as APIError;
+      throw new Error(data.message);
+    }
+
+    return { success: true };
+  }
 }

@@ -13,14 +13,17 @@ type ListService interface {
 	CreateList(ctx context.Context, ownerID uuid.UUID, title string) (*model.List, error)
 	DeleteList(ctx context.Context, ownerID uuid.UUID, id uuid.UUID) error
 	UpdateList(ctx context.Context, ownerID uuid.UUID, id uuid.UUID, listU *model.ListU) (*model.List, error)
+
 	AddMemberToList(ctx context.Context, ownerID uuid.UUID, listID uuid.UUID, userID uuid.UUID) error
 	RemoveMemberFromList(ctx context.Context, ownerID uuid.UUID, listID uuid.UUID, userID uuid.UUID) error
-	GetAllLists(ctx context.Context, memberID uuid.UUID) ([]*model.List, error)
-	GetPublicLists(ctx context.Context, userID uuid.UUID) ([]*model.List, error)
-	GetPrivateDetailedList(ctx context.Context, memberID uuid.UUID, id uuid.UUID) (*DetailedList, error)
-	GetPublicDetailedList(ctx context.Context, id uuid.UUID) (*DetailedList, error)
+
+	GetAllLists(ctx context.Context, memberID uuid.UUID) ([]*model.DetailedList, error)
+	GetPublicLists(ctx context.Context, userID uuid.UUID) ([]*model.DetailedList, error)
+	GetDetailedList(ctx context.Context, memberID uuid.UUID, id uuid.UUID) (*model.DetailedList, error)
+
 	AddMovieToList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error
 	RemoveMovieFromList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error
+
 	AddShowToList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error
 	RemoveShowFromList(ctx context.Context, memberID uuid.UUID, listID uuid.UUID, ref int) error
 }
@@ -175,7 +178,7 @@ func (ls *listService) RemoveMemberFromList(ctx context.Context, ownerID uuid.UU
 	return nil
 }
 
-func (ls *listService) GetAllLists(ctx context.Context, memberID uuid.UUID) ([]*model.List, error) {
+func (ls *listService) GetAllLists(ctx context.Context, memberID uuid.UUID) ([]*model.DetailedList, error) {
 	exists, err := ls.store.Users().Exists(ctx, &model.UserF{ID: &memberID})
 	if err != nil {
 		ls.logger.Error("error checking user existence", err)
@@ -184,16 +187,25 @@ func (ls *listService) GetAllLists(ctx context.Context, memberID uuid.UUID) ([]*
 		return nil, fault.NotFound("user not found")
 	}
 
-	lists, err := ls.store.Lists().All(ctx, &model.ListF{HasMember: &memberID})
+	lwms, err := ls.store.Lists().AllWithMedia(ctx, &model.ListF{HasMember: &memberID})
 	if err != nil {
 		ls.logger.Error("error fetching list", err)
 		return nil, fault.Internal("error fetching list")
 	}
 
-	return lists, nil
+	detailed := make([]*model.DetailedList, 0, len(lwms))
+	for _, lwm := range lwms {
+		detailed = append(detailed, &model.DetailedList{
+			List:   lwm.List,
+			Movies: ls.filterMedia(lwm.Medias, model.MediaTypeMovie),
+			Shows:  ls.filterMedia(lwm.Medias, model.MediaTypeShow),
+		})
+	}
+
+	return detailed, nil
 }
 
-func (ls *listService) GetPublicLists(ctx context.Context, userID uuid.UUID) ([]*model.List, error) {
+func (ls *listService) GetPublicLists(ctx context.Context, userID uuid.UUID) ([]*model.DetailedList, error) {
 	exists, err := ls.store.Users().Exists(ctx, &model.UserF{ID: &userID})
 	if err != nil {
 		ls.logger.Error("error checking user existence", err)
@@ -204,24 +216,26 @@ func (ls *listService) GetPublicLists(ctx context.Context, userID uuid.UUID) ([]
 
 	public := true
 
-	lists, err := ls.store.Lists().All(ctx, &model.ListF{HasMember: &userID, Public: &public})
+	lwms, err := ls.store.Lists().AllWithMedia(ctx, &model.ListF{HasMember: &userID, Public: &public})
 	if err != nil {
 		ls.logger.Error("error fetching list", err)
 		return nil, fault.Internal("error fetching list")
 	}
 
-	return lists, nil
+	detailed := make([]*model.DetailedList, 0, len(lwms))
+	for _, lwm := range lwms {
+		detailed = append(detailed, &model.DetailedList{
+			List:   lwm.List,
+			Movies: ls.filterMedia(lwm.Medias, model.MediaTypeMovie),
+			Shows:  ls.filterMedia(lwm.Medias, model.MediaTypeShow),
+		})
+	}
+
+	return detailed, nil
 }
 
-type DetailedList struct {
-	List    *model.List    `json:"list"`
-	Members []*model.User  `json:"memberIDs"`
-	Movies  []*model.Media `json:"movies"`
-	Shows   []*model.Media `json:"shows"`
-}
-
-func (ls *listService) GetPrivateDetailedList(ctx context.Context, memberID uuid.UUID, id uuid.UUID) (*DetailedList, error) {
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &id, HasMember: &memberID})
+func (ls *listService) GetDetailedList(ctx context.Context, memberID uuid.UUID, id uuid.UUID) (*model.DetailedList, error) {
+	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &id})
 	if err != nil {
 		if datastore.IsNotFound(err) {
 			return nil, fault.NotFound("list not found")
@@ -236,36 +250,8 @@ func (ls *listService) GetPrivateDetailedList(ctx context.Context, memberID uuid
 		return nil, fault.Internal("error fetching list")
 	}
 
-	media, err := ls.store.Lists().AllMedia(ctx, list)
-	if err != nil {
-		ls.logger.Error("error fetching media", err)
-		return nil, fault.Internal("error fetching list")
-	}
-
-	return &DetailedList{
-		List:    list,
-		Members: users,
-		Movies:  ls.filterMedia(media, model.MediaTypeMovie),
-		Shows:   ls.filterMedia(media, model.MediaTypeShow),
-	}, nil
-}
-
-func (ls *listService) GetPublicDetailedList(ctx context.Context, id uuid.UUID) (*DetailedList, error) {
-	public := true
-
-	list, err := ls.store.Lists().One(ctx, &model.ListF{ID: &id, Public: &public})
-	if err != nil {
-		if datastore.IsNotFound(err) {
-			return nil, fault.NotFound("list not found")
-		}
-		ls.logger.Error("error fetching list", err)
-		return nil, fault.Internal("error fetching list")
-	}
-
-	users, err := ls.store.Lists().AllMembers(ctx, list)
-	if err != nil {
-		ls.logger.Error("error fetching users", err)
-		return nil, fault.Internal("error fetching list")
+	if !list.Public && !ls.hasMember(users, memberID) {
+		return nil, fault.Forbidden("you are not a member of this list")
 	}
 
 	media, err := ls.store.Lists().AllMedia(ctx, list)
@@ -274,7 +260,7 @@ func (ls *listService) GetPublicDetailedList(ctx context.Context, id uuid.UUID) 
 		return nil, fault.Internal("error fetching list")
 	}
 
-	return &DetailedList{
+	return &model.DetailedList{
 		List:    list,
 		Members: users,
 		Movies:  ls.filterMedia(media, model.MediaTypeMovie),
@@ -414,4 +400,13 @@ func (ls *listService) filterMedia(medias []*model.Media, mediaType model.MediaT
 		}
 	}
 	return movies
+}
+
+func (ls *listService) hasMember(members []*model.User, userID uuid.UUID) bool {
+	for _, member := range members {
+		if member.ID == userID {
+			return true
+		}
+	}
+	return false
 }

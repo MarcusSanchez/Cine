@@ -3,7 +3,14 @@
 import { cookies } from "next/headers";
 import API from "@/api/api";
 
-export default async function logoutAction(csrf: string) {
+type Result = {
+  success: true
+} | {
+  success: false,
+  error: string
+}
+
+export default async function logoutAction(csrf: string): Promise<Result> {
   try {
     const cookie = cookies().get("session");
     if (!cookie) return { success: false, error: "Session token not found" };

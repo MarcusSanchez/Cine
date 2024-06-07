@@ -6,19 +6,23 @@ import { Carousel, CarouselContent, CarouselItem, } from "@/components/ui/carous
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ShowCast, ShowCredits, ShowCrew } from "@/models/models";
-import Image from "next/image";
+import { errorToast } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
 
 const defaultCast = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
 const castBaseURL = "https://image.tmdb.org/t/p/original";
 
 export default function ShowCredits({ refID }: { refID: number }) {
+  const { toast } = useToast();
+
   const [credits, setCredits] = useState<ShowCredits | null>(null);
   const [viewCrew, setViewCrew] = useState(false);
 
   useEffect(() => {
     const fetchCredits = async () => {
       const result = await fetchShowCreditsAction(refID);
-      if (result.success) setCredits(result.showCredits);
+      if (!result.success) return errorToast(toast, "Failed to fetch credits", "Please try again later");
+      setCredits(result.showCredits);
     }
 
     fetchCredits();

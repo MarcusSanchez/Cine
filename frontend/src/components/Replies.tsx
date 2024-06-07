@@ -2,6 +2,8 @@ import { DetailedComment, MediaType } from "@/models/models";
 import { Dispatch, SetStateAction, useEffect } from "react";
 import { Comment } from "./Comments";
 import fetchRepliesAction from "@/actions/fetch-replies-action";
+import { useToast } from "@/components/ui/use-toast";
+import { errorToast } from "@/lib/utils";
 
 const alreadyFetchedReplies = new Set<DetailedComment>();
 
@@ -25,13 +27,15 @@ export default function Replies({
   showReplies,
   media, refID
 }: RepliesProps) {
+  const { toast } = useToast();
+
   let orderedReplies = [...comments.filter((r) => r.comment.replying_to_id === c.comment.id)];
 
   const fetchReplies = async (c: DetailedComment) => {
     if (alreadyFetchedReplies.has(c)) return;
 
     const result = await fetchRepliesAction(c.comment.id);
-    if (!result.success) return;
+    if (!result.success) return errorToast(toast, "Failed to fetch replies", "Please try again later");
     setComments(removeDuplicates([...comments, ...result.replies]));
     alreadyFetchedReplies.add(c);
   }

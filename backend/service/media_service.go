@@ -26,6 +26,9 @@ type MediaService interface {
 
 	GetMovieList(ctx context.Context, list tmdb.MovieList) ([]tmdb.Movie, error)
 	GetShowList(ctx context.Context, list tmdb.ShowList) ([]tmdb.Show, error)
+
+	SearchMovies(ctx context.Context, query string, page int) ([]tmdb.Movie, error)
+	SearchShows(ctx context.Context, query string, page int) ([]tmdb.Show, error)
 }
 
 type mediaService struct {
@@ -205,6 +208,24 @@ func (ms *mediaService) GetShowList(_ context.Context, list tmdb.ShowList) (show
 	if err != nil {
 		ms.logger.Error("failed to search show list", err)
 		return nil, fault.Internal("error getting show list")
+	}
+	return shows, nil
+}
+
+func (ms *mediaService) SearchMovies(_ context.Context, query string, page int) ([]tmdb.Movie, error) {
+	movies, err := ms.tmdb.SearchMovies(query, tmdb.SearchMovieFilter{Page: &page})
+	if err != nil {
+		ms.logger.Error("failed to search movies by query", err)
+		return nil, fault.Internal("error getting movies")
+	}
+	return movies, nil
+}
+
+func (ms *mediaService) SearchShows(_ context.Context, query string, page int) ([]tmdb.Show, error) {
+	shows, err := ms.tmdb.SearchShows(query, tmdb.SearchShowFilter{Page: &page})
+	if err != nil {
+		ms.logger.Error("failed to search shows by query", err)
+		return nil, fault.Internal("error getting shows")
 	}
 	return shows, nil
 }

@@ -46,6 +46,9 @@ type UserRepository interface {
 type ListRepository interface {
 	Repository[*model.List, *model.ListF, *model.ListU]
 
+	AllWithMedia(ctx context.Context, filters ...*model.ListF) ([]*model.ListWithMedia, error)
+	OneWithMedia(ctx context.Context, filters ...*model.ListF) (*model.ListWithMedia, error)
+
 	AllMembers(ctx context.Context, list *model.List) ([]*model.User, error)
 	AddMember(ctx context.Context, list *model.List, userID uuid.UUID) error
 	RemoveMember(ctx context.Context, list *model.List, userID uuid.UUID) error

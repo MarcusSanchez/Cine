@@ -36,7 +36,6 @@ type DetailedMovie struct {
 	Genres           []DetailedGenre `json:"genres"`
 	Homepage         string          `json:"homepage"`
 	ID               int             `json:"id"`
-	ImdbID           string          `json:"imdb_id"`
 	OriginCountry    []string        `json:"origin_country"`
 	OriginalLanguage string          `json:"original_language"`
 	OriginalTitle    string          `json:"original_title"`

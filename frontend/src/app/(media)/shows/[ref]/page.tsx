@@ -13,9 +13,12 @@ import Comments from "@/components/Comments";
 import ShowContent from "@/app/(media)/shows/[ref]/(components)/ShowContent";
 import ShowCredits from "@/app/(media)/shows/[ref]/(components)/ShowCredits";
 import ShowSeasons from "@/app/(media)/shows/[ref]/(components)/ShowSeasons";
+import { useToast } from "@/components/ui/use-toast";
+import { errorToast } from "@/lib/utils";
 
 export default function ShowPage({ params }: { params: { ref: number } }) {
   const { user } = useUserStore();
+  const { toast } = useToast();
 
   const [show, setShow] = useState<DetailedShow | null>(null);
 
@@ -42,7 +45,7 @@ export default function ShowPage({ params }: { params: { ref: number } }) {
 
     const fetchReviews = async () => {
       const result = await fetchReviewsAction(MediaType.Show, params.ref);
-      if (!result.success) return;
+      if (!result.success) return errorToast(toast, "Failed to fetch reviews", "Please try again later");
 
       const userReview = result.detailedReviews.find((r) => r.user.id === user.id);
 

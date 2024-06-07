@@ -15,6 +15,8 @@ type UserService interface {
 	GetDetailedUser(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*model.DetailedUser, error)
 	UpdateUser(ctx context.Context, id uuid.UUID, userU *model.UserU) (*model.User, error)
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	FollowUser(ctx context.Context, followerID uuid.UUID, followeeID uuid.UUID) error
+	UnfollowUser(ctx context.Context, followerID uuid.UUID, followeeID uuid.UUID) error
 }
 
 type userService struct {
@@ -110,6 +112,48 @@ func (us userService) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		us.logger.Error("user deletion failed", err)
 		return fault.Internal("error deleting user")
+	}
+
+	return nil
+}
+
+func (us userService) FollowUser(ctx context.Context, followerID uuid.UUID, followeeID uuid.UUID) error {
+	user, err := us.store.Users().One(ctx, &model.UserF{ID: &followerID})
+	if err != nil {
+		if datastore.IsNotFound(err) {
+			return fault.NotFound("user not found")
+		}
+		us.logger.Error("user retrieval failed", err)
+		return fault.Internal("error following user")
+	}
+
+	if err = us.store.Users().FollowUser(ctx, user, followeeID); err != nil {
+		if datastore.IsConstraint(err) {
+			return fault.Conflict("already following user")
+		}
+		us.logger.Error("user follow failed", err)
+		return fault.Internal("error following user")
+	}
+
+	return nil
+}
+
+func (us userService) UnfollowUser(ctx context.Context, followerID uuid.UUID, followeeID uuid.UUID) error {
+	user, err := us.store.Users().One(ctx, &model.UserF{ID: &followerID})
+	if err != nil {
+		if datastore.IsNotFound(err) {
+			return fault.NotFound("user not found")
+		}
+		us.logger.Error("user retrieval failed", err)
+		return fault.Internal("error unfollowing user")
+	}
+
+	if err = us.store.Users().UnfollowUser(ctx, user, followeeID); err != nil {
+		if datastore.IsConstraint(err) {
+			return fault.Conflict("not following user")
+		}
+		us.logger.Error("user unfollow failed", err)
+		return fault.Internal("error unfollowing user")
 	}
 
 	return nil

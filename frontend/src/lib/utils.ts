@@ -1,6 +1,15 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
+export function errorToast(toast: any, title: string, description: string) {
+  toast({
+    title: title,
+    // capitalize the first letter of the description
+    description: description.substring(0, 1).toUpperCase() + description.substring(1),
+    duration: 2000,
+  })
+}
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }

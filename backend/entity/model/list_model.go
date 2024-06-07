@@ -30,3 +30,15 @@ type ListF struct {
 	HasMember *uuid.UUID
 	HasMedia  *uuid.UUID
 }
+
+type ListWithMedia struct {
+	List   *List    `json:"list"`
+	Medias []*Media `json:"medias"`
+}
+
+type DetailedList struct {
+	List    *List    `json:"list"`
+	Members []*User  `json:"members"`
+	Movies  []*Media `json:"movies"`
+	Shows   []*Media `json:"shows"`
+}

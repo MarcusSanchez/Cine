@@ -12,10 +12,13 @@ import { DetailedMovie, DetailedReview, MediaType } from "@/models/models";
 import { Button } from "@/components/ui/button";
 import fetchReviewsAction from "@/actions/fetch-reviews-action";
 import Comments from "@/components/Comments";
+import { useToast } from "@/components/ui/use-toast";
+import { errorToast } from "@/lib/utils";
 
 
 export default function MoviePage({ params }: { params: { ref: number } }) {
   const { user } = useUserStore();
+  const { toast } = useToast();
 
   const [movie, setMovie] = useState<DetailedMovie | null>(null);
 
@@ -42,7 +45,7 @@ export default function MoviePage({ params }: { params: { ref: number } }) {
 
     const fetchReviews = async () => {
       const result = await fetchReviewsAction(MediaType.Movie, params.ref);
-      if (!result.success) return;
+      if (!result.success) return errorToast(toast, "Failed to fetch reviews", "Please try again later");
 
       const userReview = result.detailedReviews.find((r) => r.user.id === user.id);
 

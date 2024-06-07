@@ -56,17 +56,11 @@ export default function Register() {
     e.preventDefault();
 
     const values = formSchema.safeParse(form);
-    if (!values.success) {
-      setError(values.error.errors[0].message);
-      return;
-    }
+    if (!values.success) return setError(values.error.errors[0].message);
     setError(null);
 
     const result = await registerAction(values.data);
-    if (!result.success) {
-      setError(result.error);
-      return;
-    }
+    if (!result.success) return setError(result.error);
 
     setUser({ ...result.data.user, loggedIn: true, csrf: getCookie("csrf")! })
     router.push("/");
