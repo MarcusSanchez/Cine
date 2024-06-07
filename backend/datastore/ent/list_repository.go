@@ -108,7 +108,7 @@ func (lr *listRepository) DeleteExec(ctx context.Context, listFs ...*model.ListF
 func (lr *listRepository) AllWithMedia(ctx context.Context, listF ...*model.ListF) ([]*model.ListWithMedia, error) {
 	q := lr.client.List.Query()
 	q = q.Where(lr.filters(listF)...).
-		WithMedias(func(q *ent.MediaQuery) { q.Limit(6) })
+		WithMedias()
 
 	lists, err := q.All(ctx)
 	return lr.listWithMedias(lists), c.error(err)
