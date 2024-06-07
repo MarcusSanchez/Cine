@@ -9,7 +9,7 @@ COPY . .
 
 RUN go generate ./datastore/ent/ent/.
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o main .
+RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/cine-rest/.
 
 FROM alpine:latest
 
