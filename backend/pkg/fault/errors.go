@@ -23,8 +23,7 @@ func As(err error) (Error, bool) {
 }
 
 func NotFound(message string) Error {
-	e := Error{Code: CodeNotFound, Message: message}
-	return e
+	return Error{Code: CodeNotFound, Message: message}
 }
 
 func Validation(message string) Error {
