@@ -9,8 +9,9 @@ RUN npm install
 COPY . .
 
 ARG API_URL
+ENV API_URL=$API_URL
 
-RUN API_URL=$API_URL npm run build
+RUN npm run build
 
 FROM node:20.11.1-alpine
 
