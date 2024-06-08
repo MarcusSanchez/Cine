@@ -31,7 +31,9 @@ export function App({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <>
       <Navbar />
-      {loaded && children}
+      <div className="w-full min-h-[75vh]">
+        {loaded && children}
+      </div>
       <Footer />
     </>
   );
