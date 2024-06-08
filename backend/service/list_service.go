@@ -351,10 +351,10 @@ func (ls *listService) AddShowToList(ctx context.Context, memberID uuid.UUID, li
 
 	exists, err := ls.store.Lists().Exists(ctx, &model.ListF{ID: &listID, HasMedia: &media.ID})
 	if err != nil {
-		ls.logger.Error("error checking movie existence", err)
-		return fault.Internal("error adding movie to list")
+		ls.logger.Error("error checking show existence", err)
+		return fault.Internal("error adding show to list")
 	} else if exists {
-		return fault.BadRequest("movie already in list")
+		return fault.BadRequest("show already in list")
 	}
 
 	if err = ls.store.Lists().AddMedia(ctx, list, media.ID); err != nil {
