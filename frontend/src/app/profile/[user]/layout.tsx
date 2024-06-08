@@ -35,7 +35,7 @@ export default function ProfileLayout({ children, params }: ProfileLayoutProps) 
   useEffect(() => {
     const fetchUser = async () => {
       const result = await fetchUserAction(params.user);
-      if (!result.success) return router.replace("/404");
+      if (!result.success) return router.replace("/uh-oh");
       setCurrentUser(result.data.user);
     }
 

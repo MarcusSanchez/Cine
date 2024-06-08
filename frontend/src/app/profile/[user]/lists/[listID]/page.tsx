@@ -26,7 +26,7 @@ export default function ListPage({ params }: { params: { user: string, listID: s
   useEffect(() => {
     const fetchList = async () => {
       const result = await fetchDetailedListAction(params.listID);
-      if (!result.success) return router.replace("/404");
+      if (!result.success) return router.replace("/uh-oh");
       setList(result.list);
     };
 

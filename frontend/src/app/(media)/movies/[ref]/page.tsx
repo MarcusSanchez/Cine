@@ -39,7 +39,7 @@ export default function MoviePage({ params }: { params: { ref: number } }) {
   useEffect(() => {
     const fetchMovie = async () => {
       const result = await fetchMovieAction(params.ref);
-      if (!result.success) return router.replace("/404");
+      if (!result.success) return router.replace("/uh-oh");
       setMovie(result.detailedMovie);
     }
 

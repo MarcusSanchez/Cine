@@ -39,7 +39,7 @@ export default function ShowPage({ params }: { params: { ref: number } }) {
   useEffect(() => {
     const fetchShow = async () => {
       const result = await fetchShowAction(params.ref);
-      if (!result.success) return router.replace("/404");
+      if (!result.success) return router.replace("/uh-oh");
       setShow(result.detailedShow);
     }
 
