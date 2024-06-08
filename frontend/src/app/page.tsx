@@ -51,6 +51,7 @@ export default function Home() {
       }
     }
 
+    if (!user.loggedIn) return;
     fetchLists();
   }, []);
 
