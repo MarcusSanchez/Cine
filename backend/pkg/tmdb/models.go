@@ -197,7 +197,7 @@ type DetailedSeason struct {
 	Episodes     []Episode `json:"episodes"`
 	Name         string    `json:"name"`
 	Overview     string    `json:"overview"`
-	PosterPath   string    `json:"poster_path"`
+	PosterPath   *string   `json:"poster_path,optional"`
 	SeasonNumber int       `json:"season_number"`
 	VoteAverage  float64   `json:"vote_average"`
 }
