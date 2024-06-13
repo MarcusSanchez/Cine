@@ -47,8 +47,8 @@ export default function ListPage({ params }: { params: { user: string, listID: s
 
     setList({
       ...list!,
-      movies: list!.movies.filter(m => m.ref !== media.ref),
-      shows: list!.shows.filter(m => m.ref !== media.ref),
+      movies: list?.movies?.filter(m => m.ref !== media.ref) ?? [],
+      shows: list?.shows?.filter(m => m.ref !== media.ref) ?? [],
     });
   };
 
