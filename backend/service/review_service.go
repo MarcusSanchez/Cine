@@ -15,6 +15,7 @@ type ReviewService interface {
 	DeleteReview(ctx context.Context, userID, reviewID uuid.UUID) error
 	GetAllReviews(ctx context.Context, ref int, mediaType model.MediaType) ([]*model.DetailedReview, error)
 }
+
 type reviewService struct {
 	store  datastore.Store
 	logger logger.Logger
