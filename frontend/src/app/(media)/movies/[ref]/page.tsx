@@ -15,7 +15,6 @@ import Comments from "@/components/Comments";
 import { useToast } from "@/components/ui/use-toast";
 import { errorToast } from "@/lib/utils";
 
-
 export default function MoviePage({ params }: { params: { ref: number } }) {
   const { user } = useUserStore();
   const { toast } = useToast();

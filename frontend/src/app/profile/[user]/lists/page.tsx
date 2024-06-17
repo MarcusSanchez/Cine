@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { useToast } from "@/components/ui/use-toast";
 import { errorToast } from "@/lib/utils";
+import { imageBase } from "@/lib/constants";
 
 export default function ProfileLists({ params }: { params: { user: string } }) {
   const [lists, setLists] = useState<DetailedList[]>([]);
@@ -82,8 +83,6 @@ const List = ({ list, medias, params }: ListProps) => (
     </Carousel>
   </div>
 )
-
-const imageBase = "https://image.tmdb.org/t/p/w500";
 
 const ItemCard = ({ media, mediaType }: { media: Media, mediaType: MediaType }) => (
   <div className="flex flex-col group">

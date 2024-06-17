@@ -8,7 +8,6 @@ import { MovieCard, ShowCard } from "@/components/Cards";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { errorToast } from "@/lib/utils";
-import { Simulate } from "react-dom/test-utils";
 
 export default function SearchPage() {
   const { toast } = useToast();

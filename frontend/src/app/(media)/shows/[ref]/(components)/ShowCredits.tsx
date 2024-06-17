@@ -8,9 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { ShowCast, ShowCredits, ShowCrew } from "@/models/models";
 import { errorToast } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
-
-const defaultCast = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
-const castBaseURL = "https://image.tmdb.org/t/p/original";
+import { defaultCast, imageBase } from "@/lib/constants";
 
 export default function ShowCredits({ refID }: { refID: number }) {
   const { toast } = useToast();
@@ -72,7 +70,7 @@ const CreditSection = ({ title, members }: { title: string, members: (ShowCast |
 const CreditCard = ({ member }: { member: ShowCast | ShowCrew }) => (
   <div className="flex flex-col">
     <img
-      src={member.profile_path ? `${castBaseURL}/${member.profile_path}` : defaultCast}
+      src={member.profile_path ? `${imageBase}/${member.profile_path}` : defaultCast}
       alt={member.name}
       className="w-auto rounded-xl max-h-[150px] sm:max-h-[250px] md:max-h-[400px] border border-brand-yellow"
     />

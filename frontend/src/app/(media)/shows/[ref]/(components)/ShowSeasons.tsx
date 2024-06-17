@@ -8,6 +8,7 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { errorToast } from "@/lib/utils";
+import { backdropBase, episodeErrorImage } from "@/lib/constants";
 
 export default function ShowSeasons({ show }: { show: DetailedShow | null }) {
   const seasons = show?.seasons.filter(s => s.name !== "Specials") ?? [];
@@ -76,13 +77,11 @@ function ShowSeasonContent({ show, season }: { show: DetailedShow | null, season
   );
 }
 
-const episodeErrorImage = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Image_not_available.png/640px-Image_not_available.png";
-
 const EpisodeCard = ({ episode }: { episode: Episode }) => (
   <div className="flex flex-col">
     <img
       className="rounded-xl border border-brand-yellow mb-2"
-      src={`https://image.tmdb.org/t/p/original${episode.still_path}`}
+      src={`${backdropBase}${episode.still_path}`}
       alt={episode.name}
       onError={(e) => (e.target as HTMLImageElement).src = episodeErrorImage}
     />

@@ -1,14 +1,12 @@
 import { Movie, Show } from "@/models/models";
 import Link from "next/link";
-
-const baseImageURL = "https://image.tmdb.org/t/p/w500";
-const posterErrorImage = "https://conversionfanatics.com/wp-content/themes/seolounge/images/no-image/No-Image-Found-400x264.png";
+import { imageBase, posterErrorImage } from "@/lib/constants";
 
 export const MovieCard = ({ movie }: { movie: Movie }) => (
   <div className="flex gap-2 bg-brand-darker border border-brand-yellow rounded-xl p-2 mb-2 hover:bg-brand-dark">
     <Link href={`/movies/${movie.id}`}>
       <img
-        src={`${baseImageURL}${movie.poster_path}`}
+        src={`${imageBase}${movie.poster_path}`}
         alt={movie.title}
         onError={(e) => (e.target as HTMLImageElement).src = posterErrorImage}
         className="w-24 h-36 lg:w-32 lg:h-48 object-cover rounded-xl hover:opacity-60 transition duration-100 ease-in-out"
@@ -33,7 +31,7 @@ export const ShowCard = ({ show }: { show: Show }) => (
   <div className="flex gap-2 bg-brand-darker border border-brand-yellow rounded-xl p-2 mb-2 hover:bg-brand-dark">
     <Link href={`/movies/${show.id}`}>
       <img
-        src={`${baseImageURL}${show.poster_path}`}
+        src={`${imageBase}${show.poster_path}`}
         alt={show.name}
         onError={(e) => (e.target as HTMLImageElement).src = posterErrorImage}
         className="w-24 h-36 lg:w-32 lg:h-48 object-cover rounded-xl hover:opacity-60 transition duration-100 ease-in-out"

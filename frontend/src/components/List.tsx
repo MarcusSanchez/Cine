@@ -2,8 +2,7 @@ import { MediaType, Movie, MovieList, Show, ShowList } from "@/models/models";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const imageBase = "https://image.tmdb.org/t/p/w500";
+import { imageBase } from "@/lib/constants";
 
 type ListProps = {
   mediaType: MediaType,

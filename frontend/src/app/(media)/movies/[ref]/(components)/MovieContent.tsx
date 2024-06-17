@@ -4,22 +4,20 @@ import React from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DetailedMovie, MediaType } from "@/models/models";
 import AddToListDialog from "@/components/AddToListDialog";
-
-const posterBaseURL = "https://image.tmdb.org/t/p/w500";
-const backdropBaseURL = "https://image.tmdb.org/t/p/original";
+import { backdropBase, imageBase } from "@/lib/constants";
 
 const MovieContent = ({ movie }: { movie: DetailedMovie | null }) => (
   !movie ? <MainMovieContentSkeleton /> : (
     <div
       className="w-auto h-fit bg-cover bg-center bg-no-repeat mt-[-2rem] border-y border-brand-yellow"
-      style={{ backgroundImage: `url(${backdropBaseURL}${movie?.backdrop_path})` }}
+      style={{ backgroundImage: `url(${backdropBase}${movie?.backdrop_path})` }}
     >
       <div className="inset-0 bg-black bg-opacity-85 backdrop-filter pt-8 pb-12">
         <div className="container max-w-[1200px]">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="flex justify-center col-span-2 xl:col-span-1">
               <img
-                src={`${posterBaseURL}${movie?.poster_path}`}
+                src={`${imageBase}${movie?.poster_path}`}
                 alt={movie?.title}
                 className="w-auto rounded-xl max-h-[250px] md:max-h-[344px]"
               />
